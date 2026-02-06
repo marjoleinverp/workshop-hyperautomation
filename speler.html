@@ -546,7 +546,31 @@
             }).join('');
         }
 
+        // Track which ideas user has rated
+        function getRatedIdeas() {
+            const rated = localStorage.getItem('meierijstad_rated_ideas');
+            return rated ? JSON.parse(rated) : [];
+        }
+
+        function markIdeaAsRated(ideaId) {
+            const rated = getRatedIdeas();
+            if (!rated.includes(ideaId)) {
+                rated.push(ideaId);
+                localStorage.setItem('meierijstad_rated_ideas', JSON.stringify(rated));
+            }
+        }
+
+        function hasRatedIdea(ideaId) {
+            return getRatedIdeas().includes(ideaId);
+        }
+
         async function rateIdea(ideaId, rating) {
+            // Check if already rated
+            if (hasRatedIdea(ideaId)) {
+                alert('Je hebt dit idee al beoordeeld!');
+                return;
+            }
+
             const idea = ideas.find(i => i.id === ideaId);
             if (!idea) return;
 
@@ -564,6 +588,9 @@
                     rating_count: newCount
                 })
             });
+
+            // Mark as rated
+            markIdeaAsRated(ideaId);
 
             // Refresh
             await loadIdeas();

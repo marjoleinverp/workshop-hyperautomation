@@ -1720,7 +1720,8 @@
 
         async function setGroup(e, ideaId, group) {
             e.stopPropagation();
-            const idea = ideas.find(i => i.id === ideaId);
+            const numId = parseInt(ideaId);
+            const idea = ideas.find(i => i.id === numId);
             if (!idea) return;
 
             // Toggle: if already in this group, remove from group
@@ -1764,10 +1765,11 @@
         initActiveGroup();
 
         function openIdea(ideaId) {
-            const idea = ideas.find(i => i.id === ideaId);
+            const numId = parseInt(ideaId);
+            const idea = ideas.find(i => i.id === numId);
             if (!idea) return;
 
-            currentIdeaId = ideaId;
+            currentIdeaId = numId;
 
             const modal = document.getElementById('idea-modal');
             const levelEl = document.getElementById('modal-level');
@@ -1903,11 +1905,12 @@
         async function rateIdea(event, ideaId, rating) {
             event.stopPropagation();
 
-            const idea = ideas.find(i => i.id === ideaId);
+            const numId = parseInt(ideaId);
+            const idea = ideas.find(i => i.id === numId);
             if (!idea) return;
 
             // Update in Supabase
-            await supabaseRequest(`ideas?id=eq.${ideaId}`, {
+            await supabaseRequest(`ideas?id=eq.${numId}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ rating: rating })
             });
@@ -1933,7 +1936,8 @@
 
         function resetStarHover(ideaId) {
             // Stars will show their actual rating when mouse leaves
-            const idea = ideas.find(i => i.id === ideaId);
+            const numId = parseInt(ideaId);
+            const idea = ideas.find(i => i.id === numId);
             const rating = idea ? (idea.rating || 0) : 0;
 
             const stars = document.querySelectorAll(`.star[data-idea="${ideaId}"]`);

@@ -1131,6 +1131,24 @@
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
             line-height: 1.5;
+            position: relative;
+        }
+        .edit-suggestion-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .edit-suggestion-btn:hover {
+            opacity: 1;
         }
         .suggestion-item .notes {
             margin-top: 0.5rem;
@@ -1388,6 +1406,7 @@
         const slides = document.querySelectorAll('.slide');
         let current = 0;
         let currentIdeaId = null;
+        let currentEditIndex = -1; // -1 means adding new, >= 0 means editing existing
         let currentGroupFilter = 'all';
         let ideas = []; // In-memory cache of ideas from Supabase
 
@@ -1770,6 +1789,7 @@
             if (!idea) return;
 
             currentIdeaId = numId;
+            currentEditIndex = -1; // Reset to "add new" mode
 
             const modal = document.getElementById('idea-modal');
             const levelEl = document.getElementById('modal-level');
@@ -1791,12 +1811,13 @@
             // Show existing suggestions
             if (idea.suggestions && idea.suggestions.length > 0) {
                 existingEl.classList.add('has-items');
-                listEl.innerHTML = idea.suggestions.map(s => {
+                listEl.innerHTML = idea.suggestions.map((s, index) => {
                     const stepsHtml = s.steps && s.steps.length > 0
                         ? `<ul class="steps">${s.steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ul>`
                         : (s.text ? escapeHtml(s.text) : '');
                     return `
                         <div class="suggestion-item">
+                            <button class="edit-suggestion-btn" onclick="editSuggestion(${index})">✎ wijzig</button>
                             ${stepsHtml}
                             ${s.notes ? `<div class="notes">${escapeHtml(s.notes)}</div>` : ''}
                             ${s.nodes ? `<div class="nodes">nodes: ${escapeHtml(s.nodes)}</div>` : ''}
@@ -1810,7 +1831,7 @@
             modal.classList.add('active');
         }
 
-        function addStep() {
+        function addStep(value = '') {
             const container = document.getElementById('steps-container');
             const stepCount = container.children.length + 1;
 
@@ -1818,13 +1839,13 @@
             stepRow.className = 'step-row';
             stepRow.innerHTML = `
                 <span class="step-number">${stepCount}</span>
-                <input type="text" placeholder="beschrijf deze stap..." onkeydown="handleStepKeydown(event)">
+                <input type="text" placeholder="beschrijf deze stap..." onkeydown="handleStepKeydown(event)" value="${escapeHtml(value)}">
                 <button type="button" class="remove-step" onclick="removeStep(this)">×</button>
             `;
             container.appendChild(stepRow);
 
-            // Focus the new input
-            stepRow.querySelector('input').focus();
+            // Focus the new input if no value provided
+            if (!value) stepRow.querySelector('input').focus();
         }
 
         function removeStep(btn) {
@@ -1862,6 +1883,36 @@
         function closeModal() {
             document.getElementById('idea-modal').classList.remove('active');
             currentIdeaId = null;
+            currentEditIndex = -1;
+        }
+
+        function editSuggestion(index) {
+            const idea = ideas.find(i => i.id === currentIdeaId);
+            if (!idea || !idea.suggestions || !idea.suggestions[index]) return;
+
+            const suggestion = idea.suggestions[index];
+            currentEditIndex = index;
+
+            // Clear current steps and load the suggestion's steps
+            const container = document.getElementById('steps-container');
+            container.innerHTML = '';
+
+            if (suggestion.steps && suggestion.steps.length > 0) {
+                suggestion.steps.forEach(step => {
+                    addStep(step);
+                });
+            } else {
+                addStep();
+            }
+
+            // Load notes
+            document.getElementById('modal-notes').value = suggestion.notes || '';
+
+            // Update save button text
+            document.querySelector('.modal-save').textContent = 'wijzigen opslaan';
+
+            // Scroll to form
+            document.querySelector('.modal-body').scrollTop = 0;
         }
 
         async function saveSuggestion() {
@@ -1881,11 +1932,24 @@
             if (!idea) return;
 
             const existingSuggestions = idea.suggestions || [];
-            const newSuggestions = [...existingSuggestions, {
-                steps: steps,
-                notes: notes,
-                timestamp: Date.now()
-            }];
+            let newSuggestions;
+
+            if (currentEditIndex >= 0) {
+                // Editing existing suggestion
+                newSuggestions = [...existingSuggestions];
+                newSuggestions[currentEditIndex] = {
+                    steps: steps,
+                    notes: notes,
+                    timestamp: Date.now()
+                };
+            } else {
+                // Adding new suggestion
+                newSuggestions = [...existingSuggestions, {
+                    steps: steps,
+                    notes: notes,
+                    timestamp: Date.now()
+                }];
+            }
 
             await supabaseRequest(`ideas?id=eq.${currentIdeaId}`, {
                 method: 'PATCH',

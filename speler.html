@@ -320,6 +320,28 @@
             margin-left: 0.5rem;
             align-self: center;
         }
+
+        .idea-stars .star.disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        .idea-stars .star.disabled:hover {
+            transform: none;
+        }
+
+        .idea-card.already-rated {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), transparent);
+        }
+
+        .rated-badge {
+            font-size: 0.7rem;
+            color: var(--primary);
+            margin-left: 0.5rem;
+            font-weight: 500;
+            align-self: center;
+        }
     </style>
 </head>
 <body>
@@ -461,8 +483,8 @@
             const newIdea = {
                 level: selectedLevel || 1,
                 text: text,
-                rating: selectedRating || 3,
-                rating_count: 1,
+                rating: selectedRating || 0,
+                rating_count: selectedRating ? 1 : 0,
                 group_name: activeGroup
             };
 
@@ -472,7 +494,10 @@
                 body: JSON.stringify(newIdea)
             });
 
-            if (result) {
+            if (result && result.length > 0) {
+                // Mark own idea as rated (submitter can't rate again)
+                markIdeaAsRated(result[0].id);
+
                 // Clear input
                 input.value = '';
                 selectedLevel = null;
@@ -525,20 +550,20 @@
             container.innerHTML = ideas.map(idea => {
                 const rating = idea.rating || 0;
                 const ratingCount = idea.rating_count || 0;
+                const alreadyRated = hasRatedIdea(idea.id);
+
                 const stars = [1,2,3,4,5].map(n =>
-                    `<div class="star ${n <= rating ? 'filled' : ''}"
+                    `<div class="star ${n <= rating ? 'filled' : ''} ${alreadyRated ? 'disabled' : ''}"
                          data-idea="${idea.id}"
                          data-rating="${n}"
-                         onclick="rateIdea(${idea.id}, ${n})"
-                         onmouseenter="previewIdeaRating(${idea.id}, ${n})"
-                         onmouseleave="clearIdeaPreview(${idea.id})"></div>`
+                         ${alreadyRated ? '' : `onclick="rateIdea(${idea.id}, ${n})" onmouseenter="previewIdeaRating(${idea.id}, ${n})" onmouseleave="clearIdeaPreview(${idea.id})"`}></div>`
                 ).join('');
                 return `
-                    <div class="idea-card">
+                    <div class="idea-card ${alreadyRated ? 'already-rated' : ''}">
                         <span class="level-tag level-${idea.level}">${getLevelLabel(idea.level)}</span>
                         <div class="idea-stars" data-idea-stars="${idea.id}">
                             ${stars}
-                            ${ratingCount > 0 ? `<span class="rating-count">(${ratingCount}x)</span>` : ''}
+                            ${alreadyRated ? '<span class="rated-badge">✓ beoordeeld</span>' : (ratingCount > 0 ? `<span class="rating-count">(${ratingCount}x)</span>` : '')}
                         </div>
                         <p>${escapeHtml(idea.text)}</p>
                     </div>
@@ -565,9 +590,8 @@
         }
 
         async function rateIdea(ideaId, rating) {
-            // Check if already rated
+            // Check if already rated (backup check, UI should prevent this)
             if (hasRatedIdea(ideaId)) {
-                alert('Je hebt dit idee al beoordeeld!');
                 return;
             }
 

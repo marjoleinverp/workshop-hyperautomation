@@ -339,15 +339,15 @@
             <div class="level-picker">
                 <button class="level-btn level-1" onclick="selectLevel(1)" data-level="1">
                     <span class="icon">1</span>
-                    <span class="label">broodrooster</span>
+                    <span class="label">automation</span>
                 </button>
                 <button class="level-btn level-2" onclick="selectLevel(2)" data-level="2">
                     <span class="icon">2</span>
-                    <span class="label">recept</span>
+                    <span class="label">workflow automation</span>
                 </button>
                 <button class="level-btn level-3" onclick="selectLevel(3)" data-level="3">
                     <span class="icon">3</span>
-                    <span class="label">slimme chef</span>
+                    <span class="label">hyperautomation</span>
                 </button>
             </div>
 
@@ -485,10 +485,10 @@
 
         function getLevelLabel(level) {
             switch(level) {
-                case 1: return 'broodrooster';
-                case 2: return 'recept';
-                case 3: return 'slimme chef';
-                default: return 'broodrooster';
+                case 1: return 'automation';
+                case 2: return 'workflow automation';
+                case 3: return 'hyperautomation';
+                default: return 'automation';
             }
         }
 

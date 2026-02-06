@@ -1381,11 +1381,36 @@
     </style>
 
     <script>
-        const STORAGE_KEY = 'meierijstad_brainstorm';
+        // Supabase config
+        const SUPABASE_URL = 'https://tzypdggwahqhcmohoypv.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6eXBkZ2d3YWhxaGNtb2hveXB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NDEyNTMsImV4cCI6MjA1NDQxNzI1M30.sb_publishable_sxFKlH_i_nsVLr_dSZUDpQ_C-rYNX2L';
+
         const slides = document.querySelectorAll('.slide');
         let current = 0;
         let currentIdeaId = null;
         let currentGroupFilter = 'all';
+        let ideas = []; // In-memory cache of ideas from Supabase
+
+        // Supabase API helper
+        async function supabaseRequest(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': options.method === 'POST' ? 'return=representation' : (options.method === 'PATCH' ? 'return=representation' : undefined),
+                    ...options.headers
+                }
+            });
+            if (!response.ok) {
+                console.error('Supabase error:', await response.text());
+                return null;
+            }
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
+        }
 
         // SVG Duck template (met inline kleuren)
         const duckSVG = `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
@@ -1621,38 +1646,32 @@
         });
 
         // === IDEAS FUNCTIONALITY ===
-        function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            return saved ? JSON.parse(saved) : { ideas: [] };
-        }
-
-        function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
         function getLevelLabel(level) {
             switch(level) {
-                case 1: return 'broodrooster';
-                case 2: return 'recept';
-                case 3: return 'slimme chef';
-                default: return 'broodrooster';
+                case 1: return 'automation';
+                case 2: return 'workflow automation';
+                case 3: return 'hyperautomation';
+                default: return 'automation';
             }
         }
 
-        function refreshIdeas() {
-            const data = loadData();
+        async function refreshIdeas() {
+            // Fetch from Supabase
+            const data = await supabaseRequest('ideas?order=rating.desc,created_at.desc');
+            ideas = data || [];
+
             const grid = document.getElementById('ideas-grid');
             const countEl = document.getElementById('ideas-count');
 
             // Filter by group
-            let filtered = data.ideas;
+            let filtered = ideas;
             if (currentGroupFilter === 'none') {
-                filtered = data.ideas.filter(i => !i.group);
+                filtered = ideas.filter(i => !i.group_name);
             } else if (currentGroupFilter !== 'all') {
-                filtered = data.ideas.filter(i => i.group === currentGroupFilter);
+                filtered = ideas.filter(i => i.group_name === currentGroupFilter);
             }
 
-            countEl.textContent = filtered.length + (currentGroupFilter !== 'all' ? '/' + data.ideas.length : '');
+            countEl.textContent = filtered.length + (currentGroupFilter !== 'all' ? '/' + ideas.length : '');
 
             if (filtered.length === 0) {
                 grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--muted); grid-column: 1 / -1;">geen ideeën in deze groep...</div>';
@@ -1663,13 +1682,13 @@
                 const ratingA = a.rating || 0;
                 const ratingB = b.rating || 0;
                 if (ratingB !== ratingA) return ratingB - ratingA;
-                return b.timestamp - a.timestamp;
+                return (b.created_at || 0) - (a.created_at || 0);
             });
 
             grid.innerHTML = sorted.map(idea => {
                 const suggestionCount = idea.suggestions ? idea.suggestions.length : 0;
                 const rating = idea.rating || 0;
-                const group = idea.group || '';
+                const group = idea.group_name || '';
                 const stars = [1,2,3,4,5].map(n =>
                     `<div class="star ${n <= rating ? 'filled' : ''}" data-idea="${idea.id}" data-rating="${n}" onclick="rateIdea(event, '${idea.id}', ${n})" onmouseenter="hoverStar('${idea.id}', ${n})"></div>`
                 ).join('');
@@ -1691,34 +1710,37 @@
             }).join('');
         }
 
-        function filterGroup(group) {
+        async function filterGroup(group) {
             currentGroupFilter = group;
             document.querySelectorAll('.group-filter-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.group === group);
             });
-            refreshIdeas();
+            await refreshIdeas();
         }
 
-        function setGroup(e, ideaId, group) {
+        async function setGroup(e, ideaId, group) {
             e.stopPropagation();
-            const data = loadData();
-            const idea = data.ideas.find(i => i.id === ideaId);
+            const idea = ideas.find(i => i.id === ideaId);
             if (!idea) return;
 
             // Toggle: if already in this group, remove from group
-            if (idea.group === group) {
-                delete idea.group;
-            } else {
-                idea.group = group;
-            }
-            saveData(data);
-            refreshIdeas();
+            const newGroup = idea.group_name === group ? null : group;
+
+            await supabaseRequest(`ideas?id=eq.${ideaId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ group_name: newGroup })
+            });
+            await refreshIdeas();
         }
 
-        function clearAllIdeas() {
+        async function clearAllIdeas() {
             if (confirm('Weet je zeker dat je alle ideeën wilt wissen?')) {
-                saveData({ ideas: [] });
-                refreshIdeas();
+                // Delete all ideas (filter: id > 0 matches all records)
+                await supabaseRequest('ideas?id=gt.0', {
+                    method: 'DELETE',
+                    headers: { 'Prefer': 'return=minimal' }
+                });
+                await refreshIdeas();
             }
         }
 
@@ -1742,8 +1764,7 @@
         initActiveGroup();
 
         function openIdea(ideaId) {
-            const data = loadData();
-            const idea = data.ideas.find(i => i.id === ideaId);
+            const idea = ideas.find(i => i.id === ideaId);
             if (!idea) return;
 
             currentIdeaId = ideaId;
@@ -1841,7 +1862,7 @@
             currentIdeaId = null;
         }
 
-        function saveSuggestion() {
+        async function saveSuggestion() {
             if (!currentIdeaId) return;
 
             const steps = getSteps();
@@ -1854,20 +1875,23 @@
                 return;
             }
 
-            const data = loadData();
-            const idea = data.ideas.find(i => i.id === currentIdeaId);
+            const idea = ideas.find(i => i.id === currentIdeaId);
             if (!idea) return;
 
-            if (!idea.suggestions) idea.suggestions = [];
-            idea.suggestions.push({
+            const existingSuggestions = idea.suggestions || [];
+            const newSuggestions = [...existingSuggestions, {
                 steps: steps,
                 notes: notes,
                 timestamp: Date.now()
+            }];
+
+            await supabaseRequest(`ideas?id=eq.${currentIdeaId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ suggestions: newSuggestions })
             });
 
-            saveData(data);
             closeModal();
-            refreshIdeas();
+            await refreshIdeas();
         }
 
         function escapeHtml(text) {
@@ -1876,15 +1900,20 @@
             return div.innerHTML;
         }
 
-        function rateIdea(event, ideaId, rating) {
+        async function rateIdea(event, ideaId, rating) {
             event.stopPropagation();
 
-            const data = loadData();
-            const idea = data.ideas.find(i => i.id === ideaId);
+            const idea = ideas.find(i => i.id === ideaId);
             if (!idea) return;
 
+            // Update in Supabase
+            await supabaseRequest(`ideas?id=eq.${ideaId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ rating: rating })
+            });
+
+            // Update local cache
             idea.rating = rating;
-            saveData(data);
 
             // Update stars visually without full refresh
             const stars = document.querySelectorAll(`.star[data-idea="${ideaId}"]`);
@@ -1904,8 +1933,7 @@
 
         function resetStarHover(ideaId) {
             // Stars will show their actual rating when mouse leaves
-            const data = loadData();
-            const idea = data.ideas.find(i => i.id === ideaId);
+            const idea = ideas.find(i => i.id === ideaId);
             const rating = idea ? (idea.rating || 0) : 0;
 
             const stars = document.querySelectorAll(`.star[data-idea="${ideaId}"]`);

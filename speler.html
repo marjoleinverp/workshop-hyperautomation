@@ -383,9 +383,34 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'meierijstad_brainstorm';
+        // Supabase config
+        const SUPABASE_URL = 'https://tzypdggwahqhcmohoypv.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6eXBkZ2d3YWhxaGNtb2hveXB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg4NDEyNTMsImV4cCI6MjA1NDQxNzI1M30.sb_publishable_sxFKlH_i_nsVLr_dSZUDpQ_C-rYNX2L';
+
         let selectedLevel = null;
         let selectedRating = 0;
+        let ideas = [];
+
+        // Supabase API helper
+        async function supabaseRequest(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': options.method === 'POST' ? 'return=representation' : undefined,
+                    ...options.headers
+                }
+            });
+            if (!response.ok) {
+                console.error('Supabase error:', await response.text());
+                return null;
+            }
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
+        }
 
         function selectRating(value) {
             selectedRating = value;
@@ -420,7 +445,7 @@
             });
         }
 
-        function submitIdea() {
+        async function submitIdea() {
             const input = document.getElementById('idea-input');
             const text = input.value.trim();
 
@@ -429,58 +454,48 @@
                 return;
             }
 
-            // Load existing ideas
-            let data = loadData();
+            // Get active group from localStorage (set by demo page)
+            const activeGroup = localStorage.getItem('meierijstad_active_group') || null;
 
-            // Get active group from demo page setting
-            const activeGroup = localStorage.getItem('meierijstad_active_group') || '';
-
-            // Add new idea
+            // Create new idea
             const newIdea = {
-                id: 'idea_' + Date.now(),
                 level: selectedLevel || 1,
                 text: text,
                 rating: selectedRating || 3,
-                votes: 0,
-                timestamp: Date.now()
+                rating_count: 1,
+                group_name: activeGroup
             };
 
-            // Assign to active group if set
-            if (activeGroup) {
-                newIdea.group = activeGroup;
+            // Save to Supabase
+            const result = await supabaseRequest('ideas', {
+                method: 'POST',
+                body: JSON.stringify(newIdea)
+            });
+
+            if (result) {
+                // Clear input
+                input.value = '';
+                selectedLevel = null;
+                selectedRating = 0;
+                document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('selected'));
+                updateStars();
+
+                // Show success
+                const successMsg = document.getElementById('success-msg');
+                successMsg.classList.add('show');
+                setTimeout(() => successMsg.classList.remove('show'), 3000);
+
+                // Refresh list
+                await loadIdeas();
+            } else {
+                alert('Er ging iets mis bij het opslaan. Probeer opnieuw.');
             }
+        }
 
-            data.ideas.push(newIdea);
-
-            // Save
-            saveData(data);
-
-            // Clear input
-            input.value = '';
-            selectedLevel = null;
-            selectedRating = 0;
-            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('selected'));
-            updateStars();
-
-            // Show success
-            const successMsg = document.getElementById('success-msg');
-            successMsg.classList.add('show');
-            setTimeout(() => successMsg.classList.remove('show'), 3000);
-
-            // Refresh list
+        async function loadIdeas() {
+            const data = await supabaseRequest('ideas?order=rating.desc,created_at.desc');
+            ideas = data || [];
             renderIdeas();
-        }
-
-        function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                return JSON.parse(saved);
-            }
-            return { ideas: [] };
-        }
-
-        function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
         function getLevelLabel(level) {
@@ -493,13 +508,12 @@
         }
 
         function renderIdeas() {
-            const data = loadData();
             const container = document.getElementById('ideas-container');
             const countEl = document.getElementById('idea-count');
 
-            countEl.textContent = data.ideas.length;
+            countEl.textContent = ideas.length;
 
-            if (data.ideas.length === 0) {
+            if (ideas.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <p>nog geen ideeën ingediend</p>
@@ -508,24 +522,16 @@
                 return;
             }
 
-            // Sort by rating first, then by newest
-            const sorted = [...data.ideas].sort((a, b) => {
-                const ratingA = a.rating || 0;
-                const ratingB = b.rating || 0;
-                if (ratingB !== ratingA) return ratingB - ratingA;
-                return b.timestamp - a.timestamp;
-            });
-
-            container.innerHTML = sorted.map(idea => {
+            container.innerHTML = ideas.map(idea => {
                 const rating = idea.rating || 0;
-                const ratingCount = idea.ratingCount || 0;
+                const ratingCount = idea.rating_count || 0;
                 const stars = [1,2,3,4,5].map(n =>
                     `<div class="star ${n <= rating ? 'filled' : ''}"
                          data-idea="${idea.id}"
                          data-rating="${n}"
-                         onclick="rateIdea('${idea.id}', ${n})"
-                         onmouseenter="previewIdeaRating('${idea.id}', ${n})"
-                         onmouseleave="clearIdeaPreview('${idea.id}')"></div>`
+                         onclick="rateIdea(${idea.id}, ${n})"
+                         onmouseenter="previewIdeaRating(${idea.id}, ${n})"
+                         onmouseleave="clearIdeaPreview(${idea.id})"></div>`
                 ).join('');
                 return `
                     <div class="idea-card">
@@ -540,22 +546,27 @@
             }).join('');
         }
 
-        function rateIdea(ideaId, rating) {
-            const data = loadData();
-            const idea = data.ideas.find(i => i.id === ideaId);
+        async function rateIdea(ideaId, rating) {
+            const idea = ideas.find(i => i.id === ideaId);
             if (!idea) return;
 
             // Calculate new average rating
             const oldRating = idea.rating || 0;
-            const oldCount = idea.ratingCount || 0;
+            const oldCount = idea.rating_count || 0;
             const newCount = oldCount + 1;
             const newRating = Math.round(((oldRating * oldCount) + rating) / newCount);
 
-            idea.rating = newRating;
-            idea.ratingCount = newCount;
+            // Update in Supabase
+            await supabaseRequest(`ideas?id=eq.${ideaId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    rating: newRating,
+                    rating_count: newCount
+                })
+            });
 
-            saveData(data);
-            renderIdeas();
+            // Refresh
+            await loadIdeas();
         }
 
         function previewIdeaRating(ideaId, rating) {
@@ -597,15 +608,15 @@
             }
         }
 
-        // Initial render
-        renderIdeas();
+        // Initial load
+        loadIdeas();
         updateGroupIndicator();
 
-        // Auto-refresh every 3 seconds to see new ideas from others
+        // Auto-refresh every 5 seconds
         setInterval(() => {
-            renderIdeas();
+            loadIdeas();
             updateGroupIndicator();
-        }, 3000);
+        }, 5000);
     </script>
 </body>
 </html>

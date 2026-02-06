@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input - Hyperautomation Workshop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #60a5fa;
+            --primary-dark: #1d4ed8;
+            --primary-50: #eff6ff;
+            --secondary: #10b981;
+            --secondary-light: #34d399;
+            --secondary-dark: #059669;
+            --secondary-50: #ecfdf5;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --divider: #e5e7eb;
+            --warning: #f59e0b;
+            --warning-50: #fffbeb;
+            --error: #ef4444;
+            --error-50: #fef2f2;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: var(--slate-50);
+            color: var(--slate-800);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: var(--slate-800);
+            color: var(--white);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 0.875rem;
+            color: var(--secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Steps */
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem 0;
+            position: relative;
+        }
+
+        .progress-bar::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--slate-200);
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .progress-step {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--slate-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--slate-400);
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-step.active {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .progress-step.completed {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: var(--white);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--slate-500);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Form elements */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--slate-700);
+            margin-bottom: 0.5rem;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--slate-800);
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+        }
+
+        /* Radio buttons */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .radio-option:hover {
+            background: var(--slate-50);
+        }
+
+        .radio-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-50);
+        }
+
+        .radio-option input {
+            margin-right: 0.75rem;
+            accent-color: var(--primary);
+        }
+
+        .radio-option span {
+            font-size: 0.875rem;
+        }
+
+        /* Checkboxes */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .checkbox-option:hover {
+            background: var(--slate-50);
+        }
+
+        .checkbox-option.selected {
+            border-color: var(--secondary);
+            background: var(--secondary-50);
+        }
+
+        .checkbox-option input {
+            margin-right: 0.5rem;
+            accent-color: var(--secondary);
+        }
+
+        .checkbox-option span {
+            font-size: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--slate-600);
+            border: 1px solid var(--divider);
+        }
+
+        .btn-secondary:hover {
+            background: var(--slate-100);
+        }
+
+        .btn-success {
+            background: var(--secondary);
+            color: var(--white);
+            width: 100%;
+        }
+
+        .btn-success:hover {
+            background: var(--secondary-dark);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* Node suggestions */
+        .suggestions {
+            margin-top: 1.5rem;
+        }
+
+        .suggestion-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--slate-700);
+            margin-bottom: 0.75rem;
+        }
+
+        .suggestion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .suggestion-tag {
+            background: var(--secondary-50);
+            color: var(--secondary-dark);
+            padding: 0.5rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid var(--secondary);
+        }
+
+        /* Success state */
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--secondary-50);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--secondary);
+            font-size: 2rem;
+        }
+
+        /* Explore section */
+        .explore-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .explore-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .explore-card h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .explore-card .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .explore-card .meta-tag {
+            background: var(--slate-100);
+            color: var(--slate-600);
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.625rem;
+        }
+
+        .explore-card .vote-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: var(--secondary-50);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .explore-card .vote-btn:hover {
+            background: var(--secondary);
+            color: var(--white);
+        }
+
+        .explore-card .vote-btn.voted {
+            background: var(--secondary);
+            color: var(--white);
+        }
+
+        /* Session selector */
+        .session-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .session-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--slate-200);
+            border-radius: 8px;
+            background: var(--white);
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+            font-family: inherit;
+        }
+
+        .session-btn:hover {
+            border-color: var(--primary-light);
+        }
+
+        .session-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary-50);
+        }
+
+        .session-btn span {
+            display: block;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .session-btn small {
+            color: var(--slate-500);
+            font-size: 0.75rem;
+        }
+
+        /* Error message */
+        .error-message {
+            background: var(--error-50);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Hyperautomation Workshop</h1>
+        <p class="subtitle">Gemeente Meierijstad</p>
+    </div>
+
+    <div class="container">
+        <!-- Progress -->
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="0">1</div>
+            <div class="progress-step" data-step="1">2</div>
+            <div class="progress-step" data-step="2">3</div>
+            <div class="progress-step" data-step="3">4</div>
+        </div>
+
+        <!-- Step 0: Sessie selectie -->
+        <div class="step active" data-step="0">
+            <div class="card">
+                <h2>Welkom!</h2>
+                <p>Kies eerst je sessie</p>
+
+                <div class="session-selector">
+                    <button class="session-btn" data-session="sessie1" onclick="selectSession('sessie1')">
+                        <span>Sessie 1</span>
+                        <small>Ochtend</small>
+                    </button>
+                    <button class="session-btn" data-session="sessie2" onclick="selectSession('sessie2')">
+                        <span>Sessie 2</span>
+                        <small>Middag</small>
+                    </button>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextStep()" id="btn-start" disabled>
+                    Doorgaan
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 1: Hoofdvraag -->
+        <div class="step" data-step="1">
+            <div class="card">
+                <h2>Wat kost jou regelmatig tijd?</h2>
+                <p>Beschrijf een taak die je steeds weer moet doen en waar je liever geen tijd aan kwijt zou zijn.</p>
+
+                <div class="error-message" id="error-step1">Vul je irritatie in om door te gaan</div>
+
+                <textarea
+                    id="irritatie"
+                    placeholder="Bijv. elke week handmatig verlofaanvragen invoeren in meerdere systemen..."
+                ></textarea>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">Terug</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Volgende</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Verdieping -->
+        <div class="step" data-step="2">
+            <div class="card">
+                <h2>Laten we dit uitwerken</h2>
+                <p>Een paar vragen om beter te begrijpen wat je nodig hebt.</p>
+
+                <label>Wat triggert deze taak?</label>
+                <div class="radio-group" id="trigger-group">
+                    <label class="radio-option" onclick="selectRadio(this, 'trigger')">
+                        <input type="radio" name="trigger" value="mail">
+                        <span>Er komt een mail binnen</span>
+                    </label>
+                    <label class="radio-option" onclick="selectRadio(this, 'trigger')">
+                        <input type="radio" name="trigger" value="datum">
+                        <span>Een datum/deadline nadert</span>
+                    </label>
+                    <label class="radio-option" onclick="selectRadio(this, 'trigger')">
+                        <input type="radio" name="trigger" value="aanvraag">
+                        <span>Iemand doet een aanvraag</span>
+                    </label>
+                    <label class="radio-option" onclick="selectRadio(this, 'trigger')">
+                        <input type="radio" name="trigger" value="handmatig">
+                        <span>Ik start het handmatig</span>
+                    </label>
+                    <label class="radio-option" onclick="selectRadio(this, 'trigger')">
+                        <input type="radio" name="trigger" value="anders">
+                        <span>Anders</span>
+                    </label>
+                </div>
+
+                <label>Welke systemen gebruik je hierbij?</label>
+                <div class="checkbox-group" id="systemen-group">
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="outlook">
+                        <span>Outlook / Mail</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="excel">
+                        <span>Excel</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="topdesk">
+                        <span>Topdesk</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="djuma">
+                        <span>Zaaksysteem (Djuma)</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="sharepoint">
+                        <span>SharePoint / OneDrive</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="teams">
+                        <span>Teams</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="word">
+                        <span>Word / PDF</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="website">
+                        <span>Website / CMS</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="api">
+                        <span>Externe API (DUO, BAG)</span>
+                    </label>
+                    <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="systemen" value="anders">
+                        <span>Anders</span>
+                    </label>
+                </div>
+
+                <label>Wat is het eindresultaat?</label>
+                <textarea
+                    id="eindresultaat"
+                    placeholder="Bijv. document opgeslagen, mail verstuurd, collega geinformeerd..."
+                    style="min-height: 80px;"
+                ></textarea>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">Terug</button>
+                    <button class="btn btn-success" onclick="submitForm()" id="btn-submit">Verstuur</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Resultaat -->
+        <div class="step" data-step="3">
+            <div class="card" style="text-align: center;">
+                <div class="success-icon">V</div>
+                <h2>Bedankt!</h2>
+                <p>Op basis van jouw input:</p>
+
+                <div class="suggestions" id="suggestions">
+                    <p class="suggestion-title">n8n nodes die kunnen helpen:</p>
+                    <div class="suggestion-list" id="suggestion-list">
+                        <!-- Dynamisch gevuld -->
+                    </div>
+                </div>
+
+                <div class="btn-group" style="flex-direction: column; margin-top: 2rem;">
+                    <button class="btn btn-primary" onclick="showExplore()">Bekijk alle inzendingen</button>
+                    <button class="btn btn-secondary" onclick="resetForm()">Nog een idee indienen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Explore (hidden initially) -->
+        <div class="step" data-step="4">
+            <div class="card">
+                <h2>Alle inzendingen</h2>
+                <p>Stem op ideeen die jij ook belangrijk vindt</p>
+            </div>
+
+            <div class="explore-list" id="explore-list">
+                <!-- Dynamisch gevuld -->
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="goToStep(0)" style="width: 100%;">
+                    Terug naar start
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATIE - PAS DIT AAN VOOR JE NETWERK
+        // ============================================
+        const CONFIG = {
+            n8nBaseUrl: 'http://192.168.1.100:5678', // <- WIJZIG NAAR JOUW n8n IP
+            submitWebhook: '/webhook/irritatie-submit',
+            fetchWebhook: '/webhook/irritatie-fetch',
+            updateWebhook: '/webhook/irritatie-update',
+            // Fallback naar localStorage als n8n niet beschikbaar is
+            useLocalStorage: true
+        };
+
+        // ============================================
+        // STATE
+        // ============================================
+        let currentStep = 0;
+        let selectedSession = null;
+        let formData = {
+            sessie: '',
+            irritatie: '',
+            trigger_type: '',
+            systemen: [],
+            eindresultaat: ''
+        };
+
+        // ============================================
+        // NODE SUGGESTIE MAPPING
+        // ============================================
+        const nodeSuggesties = {
+            triggers: {
+                'mail': ['Email Trigger (IMAP)', 'Microsoft Outlook Trigger'],
+                'datum': ['Schedule Trigger', 'Cron node'],
+                'aanvraag': ['Webhook node', 'Form Trigger'],
+                'handmatig': ['Manual Trigger', 'Form Trigger'],
+                'anders': ['Webhook node']
+            },
+            systemen: {
+                'outlook': ['Microsoft Outlook node'],
+                'excel': ['Microsoft Excel node', 'Spreadsheet File node'],
+                'djuma': ['HTTP Request -> Djuma API'],
+                'sharepoint': ['Microsoft SharePoint node'],
+                'teams': ['Microsoft Teams node'],
+                'website': ['HTTP Request node', 'HTML Extract node'],
+                'topdesk': ['HTTP Request -> Topdesk REST API'],
+                'api': ['HTTP Request node'],
+                'word': ['Edit Template node', 'Write Binary File node']
+            }
+        };
+
+        // ============================================
+        // NAVIGATIE
+        // ============================================
+        function goToStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+            // Show target step
+            document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
+
+            // Update progress
+            document.querySelectorAll('.progress-step').forEach((p, i) => {
+                p.classList.remove('active', 'completed');
+                if (i < step) p.classList.add('completed');
+                if (i === step) p.classList.add('active');
+            });
+
+            currentStep = step;
+        }
+
+        function nextStep() {
+            // Validatie per stap
+            if (currentStep === 0 && !selectedSession) {
+                return;
+            }
+            if (currentStep === 1) {
+                const irritatie = document.getElementById('irritatie').value.trim();
+                if (!irritatie) {
+                    document.getElementById('error-step1').classList.add('show');
+                    return;
+                }
+                document.getElementById('error-step1').classList.remove('show');
+                formData.irritatie = irritatie;
+            }
+
+            goToStep(currentStep + 1);
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                goToStep(currentStep - 1);
+            }
+        }
+
+        // ============================================
+        // FORM HANDLING
+        // ============================================
+        function selectSession(session) {
+            selectedSession = session;
+            formData.sessie = session;
+
+            document.querySelectorAll('.session-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.session === session);
+            });
+
+            document.getElementById('btn-start').disabled = false;
+        }
+
+        function selectRadio(element, name) {
+            // Remove selected from all
+            document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+                input.parentElement.classList.remove('selected');
+            });
+
+            // Add selected to clicked
+            element.classList.add('selected');
+            element.querySelector('input').checked = true;
+
+            formData.trigger_type = element.querySelector('input').value;
+        }
+
+        function toggleCheckbox(element) {
+            const checkbox = element.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('selected', checkbox.checked);
+
+            // Update formData
+            formData.systemen = [];
+            document.querySelectorAll('input[name="systemen"]:checked').forEach(cb => {
+                formData.systemen.push(cb.value);
+            });
+        }
+
+        // ============================================
+        // SUBMIT & DATA
+        // ============================================
+        async function submitForm() {
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Verzenden...';
+
+            // Collect remaining data
+            formData.eindresultaat = document.getElementById('eindresultaat').value.trim();
+
+            // Generate node suggestions
+            const suggesties = generateSuggestions();
+            formData.node_suggesties = suggesties.join(', ');
+            formData.timestamp = new Date().toISOString();
+            formData.votes = 0;
+            formData.id = 'id_' + Date.now();
+
+            try {
+                // Try n8n webhook first
+                const response = await fetch(CONFIG.n8nBaseUrl + CONFIG.submitWebhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('n8n niet bereikbaar');
+            } catch (error) {
+                console.log('n8n niet beschikbaar, gebruik localStorage');
+                // Fallback to localStorage
+                if (CONFIG.useLocalStorage) {
+                    saveToLocalStorage(formData);
+                }
+            }
+
+            // Show suggestions
+            displaySuggestions(suggesties);
+
+            // Go to result step
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Verstuur';
+            goToStep(3);
+        }
+
+        function generateSuggestions() {
+            const suggestions = new Set();
+
+            // Trigger-based suggestions
+            if (formData.trigger_type && nodeSuggesties.triggers[formData.trigger_type]) {
+                nodeSuggesties.triggers[formData.trigger_type].forEach(s => suggestions.add(s));
+            }
+
+            // System-based suggestions
+            formData.systemen.forEach(sys => {
+                if (nodeSuggesties.systemen[sys]) {
+                    nodeSuggesties.systemen[sys].forEach(s => suggestions.add(s));
+                }
+            });
+
+            // Add AI suggestion if text analysis might help
+            if (formData.irritatie.toLowerCase().includes('classifice') ||
+                formData.irritatie.toLowerCase().includes('sorteer') ||
+                formData.irritatie.toLowerCase().includes('analyseer')) {
+                suggestions.add('OpenAI / Claude AI node');
+            }
+
+            return Array.from(suggestions);
+        }
+
+        function displaySuggestions(suggestions) {
+            const list = document.getElementById('suggestion-list');
+            list.innerHTML = '';
+
+            if (suggestions.length === 0) {
+                suggestions = ['Webhook node', 'HTTP Request node', 'IF node'];
+            }
+
+            suggestions.forEach(s => {
+                const tag = document.createElement('span');
+                tag.className = 'suggestion-tag';
+                tag.textContent = s;
+                list.appendChild(tag);
+            });
+        }
+
+        // ============================================
+        // LOCAL STORAGE FALLBACK
+        // ============================================
+        function saveToLocalStorage(data) {
+            let items = JSON.parse(localStorage.getItem('irritaties') || '[]');
+            items.push(data);
+            localStorage.setItem('irritaties', JSON.stringify(items));
+        }
+
+        function getFromLocalStorage(sessie = null) {
+            let items = JSON.parse(localStorage.getItem('irritaties') || '[]');
+            if (sessie) {
+                items = items.filter(i => i.sessie === sessie);
+            }
+            return items;
+        }
+
+        function updateVoteInLocalStorage(id, votes) {
+            let items = JSON.parse(localStorage.getItem('irritaties') || '[]');
+            items = items.map(i => {
+                if (i.id === id) i.votes = votes;
+                return i;
+            });
+            localStorage.setItem('irritaties', JSON.stringify(items));
+        }
+
+        // ============================================
+        // EXPLORE VIEW
+        // ============================================
+        async function showExplore() {
+            goToStep(4);
+            await loadExploreItems();
+        }
+
+        async function loadExploreItems() {
+            const list = document.getElementById('explore-list');
+            list.innerHTML = '<p style="text-align: center; color: var(--slate-500);">Laden...</p>';
+
+            let items = [];
+
+            try {
+                // Try n8n first
+                const response = await fetch(
+                    CONFIG.n8nBaseUrl + CONFIG.fetchWebhook + '?sessie=' + selectedSession
+                );
+                if (response.ok) {
+                    items = await response.json();
+                }
+            } catch (error) {
+                console.log('n8n niet beschikbaar, gebruik localStorage');
+            }
+
+            // Fallback or merge with localStorage
+            if (CONFIG.useLocalStorage) {
+                const localItems = getFromLocalStorage(selectedSession);
+                // Merge, avoiding duplicates by id
+                const existingIds = new Set(items.map(i => i.id));
+                localItems.forEach(li => {
+                    if (!existingIds.has(li.id)) {
+                        items.push(li);
+                    }
+                });
+            }
+
+            // Sort by votes
+            items.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+
+            // Render
+            list.innerHTML = '';
+
+            if (items.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: var(--slate-500); padding: 2rem;">Nog geen inzendingen voor deze sessie.</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'explore-card';
+
+                const meta = (item.systemen || []).map(s => `<span class="meta-tag">${s}</span>`).join('');
+                const voted = localStorage.getItem('voted_' + item.id);
+
+                card.innerHTML = `
+                    <h4>${escapeHtml(item.irritatie)}</h4>
+                    <div class="meta">
+                        <span class="meta-tag">${item.trigger_type || 'onbekend'}</span>
+                        ${meta}
+                    </div>
+                    <button class="vote-btn ${voted ? 'voted' : ''}" onclick="vote('${item.id}', this)" ${voted ? 'disabled' : ''}>
+                        + ${item.votes || 0}
+                    </button>
+                `;
+
+                list.appendChild(card);
+            });
+        }
+
+        async function vote(id, btn) {
+            if (localStorage.getItem('voted_' + id)) return;
+
+            const currentVotes = parseInt(btn.textContent.replace('+', '').trim()) || 0;
+            const newVotes = currentVotes + 1;
+
+            btn.textContent = '+ ' + newVotes;
+            btn.classList.add('voted');
+            btn.disabled = true;
+
+            localStorage.setItem('voted_' + id, 'true');
+
+            // Update in storage
+            updateVoteInLocalStorage(id, newVotes);
+
+            // Try n8n
+            try {
+                await fetch(CONFIG.n8nBaseUrl + CONFIG.updateWebhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, votes: newVotes })
+                });
+            } catch (error) {
+                console.log('Vote opgeslagen in localStorage');
+            }
+        }
+
+        // ============================================
+        // UTILS
+        // ============================================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function resetForm() {
+            formData = {
+                sessie: selectedSession,
+                irritatie: '',
+                trigger_type: '',
+                systemen: [],
+                eindresultaat: ''
+            };
+
+            document.getElementById('irritatie').value = '';
+            document.getElementById('eindresultaat').value = '';
+            document.querySelectorAll('.radio-option, .checkbox-option').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelector('input').checked = false;
+            });
+
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>

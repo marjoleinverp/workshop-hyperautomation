@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAIMS Badeend - Presentatie Mascotte</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@300;400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --duck-yellow: #FFD700;
+    --duck-orange: #FF8C00;
+    --duck-dark: #E6A800;
+    --water-blue: #1a73e8;
+    --water-light: #4fc3f7;
+    --bg-dark: #0d1b2a;
+    --bg-mid: #1b2838;
+    --accent-green: #00c853;
+    --text-light: #e0e0e0;
+  }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: default;
+    user-select: none;
+  }
+
+  .scene {
+    position: relative;
+    width: 600px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .duck-container {
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    transition: filter 0.3s;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .duck-container:hover {
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
+  }
+
+  .duck-container:active {
+    transform: scale(0.95);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-15px) rotate(1deg); }
+  }
+
+  .duck-svg {
+    width: 300px;
+    height: 300px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4));
+  }
+
+  /* Eye blink animation - both eyes */
+  .duck-eye-left, .duck-eye-right {
+    animation: blink 4s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 45%, 55%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.05); }
+  }
+
+  .speech-bubble {
+    position: absolute;
+    top: 40px;
+    right: 20px;
+    background: white;
+    border-radius: 20px;
+    padding: 16px 22px;
+    max-width: 220px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  .speech-bubble.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 30px;
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 14px solid white;
+  }
+
+  .bubbles-container {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 300px;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(79,195,247,0.1));
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: rise linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes rise {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-250px) scale(1.2); }
+  }
+
+  .particle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 30;
+    font-size: 24px;
+    animation: particleFly 1s ease-out forwards;
+  }
+
+  @keyframes particleFly {
+    0% { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3) rotate(var(--rot)); }
+  }
+
+  .title {
+    position: absolute;
+    bottom: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--duck-yellow);
+    text-shadow: 0 2px 20px rgba(255,215,0,0.4);
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    position: absolute;
+    bottom: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--text-light);
+    opacity: 0.6;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  .glow-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 215, 0, 0.08);
+    animation: pulseRing 4s ease-in-out infinite;
+    z-index: 1;
+  }
+
+  .glow-ring:nth-child(1) { width: 350px; height: 350px; animation-delay: 0s; }
+  .glow-ring:nth-child(2) { width: 450px; height: 450px; animation-delay: 1s; }
+  .glow-ring:nth-child(3) { width: 550px; height: 550px; animation-delay: 2s; }
+
+  @keyframes pulseRing {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+
+  .duck-sunglasses {
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .duck-sunglasses.on {
+    opacity: 1;
+  }
+
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 50;
+  }
+
+  .ctrl-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-light);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    padding: 8px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+  }
+
+  .ctrl-btn:hover {
+    background: rgba(255,215,0,0.15);
+    border-color: var(--duck-yellow);
+    color: var(--duck-yellow);
+  }
+
+  .ctrl-btn.active {
+    background: rgba(255,215,0,0.2);
+    border-color: var(--duck-yellow);
+    color: var(--duck-yellow);
+  }
+
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(79, 195, 247, 0.5);
+    animation: rippleOut 1.5s ease-out forwards;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  @keyframes rippleOut {
+    0% { width: 10px; height: 10px; opacity: 1; }
+    100% { width: 200px; height: 60px; opacity: 0; }
+  }
+
+  .stars {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: var(--max-op); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="scene" id="scene">
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+
+  <div class="speech-bubble" id="speechBubble">Kwak! 🦆</div>
+
+  <div class="duck-container" id="duck" onclick="quack()">
+    <svg class="duck-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Water reflection -->
+      <ellipse cx="150" cy="275" rx="105" ry="14" fill="rgba(79,195,247,0.12)"/>
+
+      <!-- Body -->
+      <ellipse cx="150" cy="205" rx="100" ry="65" fill="url(#bodyGrad2)"/>
+      <ellipse cx="150" cy="205" rx="100" ry="65" fill="url(#bodyShine2)" opacity="0.3"/>
+
+      <!-- Belly highlight -->
+      <ellipse cx="150" cy="215" rx="55" ry="35" fill="rgba(255,255,255,0.1)"/>
+
+      <!-- Tail -->
+      <path d="M 245 185 Q 275 155 265 135 Q 258 148 248 152 Q 265 135 255 115 Q 250 132 242 142 Q 248 122 243 112 Q 238 128 233 142 L 240 178" fill="url(#bodyGrad2)"/>
+
+      <!-- Left wing -->
+      <path d="M 65 190 Q 45 210 60 240 Q 78 258 120 248 Q 88 242 72 220 Q 58 202 65 190" fill="rgba(200,160,0,0.45)"/>
+      <!-- Right wing -->
+      <path d="M 225 185 Q 250 200 245 235 Q 235 255 195 252 Q 222 242 232 222 Q 242 202 225 185" fill="rgba(200,160,0,0.35)"/>
+
+      <!-- Neck -->
+      <ellipse cx="150" cy="155" rx="45" ry="38" fill="url(#bodyGrad2)"/>
+
+      <!-- Head - rounder, more frontal -->
+      <circle cx="150" cy="100" r="55" fill="url(#headGrad2)"/>
+      <circle cx="150" cy="100" r="55" fill="url(#headShine2)" opacity="0.25"/>
+
+      <!-- Cheek blush left -->
+      <ellipse cx="112" cy="118" rx="11" ry="7" fill="rgba(255,150,100,0.25)"/>
+      <!-- Cheek blush right -->
+      <ellipse cx="188" cy="118" rx="11" ry="7" fill="rgba(255,150,100,0.2)"/>
+
+      <!-- LEFT EYE -->
+      <ellipse cx="125" cy="92" rx="13" ry="14" fill="white"/>
+      <g class="duck-eye-left" transform-origin="125 92">
+        <circle cx="127" cy="92" r="7.5" fill="#222"/>
+        <circle cx="130" cy="89" r="2.8" fill="white"/>
+      </g>
+
+      <!-- RIGHT EYE -->
+      <ellipse cx="172" cy="92" rx="13" ry="14" fill="white"/>
+      <g class="duck-eye-right" transform-origin="172 92">
+        <circle cx="170" cy="92" r="7.5" fill="#222"/>
+        <circle cx="173" cy="89" r="2.8" fill="white"/>
+      </g>
+
+      <!-- Sunglasses (hidden by default) -->
+      <g class="duck-sunglasses" id="sunglasses">
+        <rect x="105" y="82" width="90" height="22" rx="8" fill="#111" opacity="0.9"/>
+        <rect x="108" y="84" width="28" height="18" rx="6" fill="#1a1a2e"/>
+        <rect x="163" y="84" width="28" height="18" rx="6" fill="#1a1a2e"/>
+        <line x1="136" y1="92" x2="163" y2="92" stroke="#111" stroke-width="2.5"/>
+        <line x1="108" y1="92" x2="90" y2="87" stroke="#111" stroke-width="2.5"/>
+        <line x1="195" y1="90" x2="210" y2="85" stroke="#111" stroke-width="2.5"/>
+        <rect x="112" y="87" width="9" height="3" rx="1.5" fill="rgba(255,255,255,0.15)"/>
+        <rect x="167" y="87" width="9" height="3" rx="1.5" fill="rgba(255,255,255,0.15)"/>
+      </g>
+
+      <!-- Beak - centered, frontal -->
+      <path d="M 130 108 Q 128 100 150 96 Q 172 100 170 108 Q 165 118 150 120 Q 135 118 130 108 Z" fill="url(#beakGrad2)"/>
+      <!-- Beak line / smile -->
+      <path d="M 135 110 Q 150 114 165 110" fill="none" stroke="rgba(180,80,0,0.35)" stroke-width="1.2" stroke-linecap="round"/>
+      <!-- Nostrils -->
+      <ellipse cx="143" cy="106" rx="2.5" ry="1.8" fill="rgba(180,80,0,0.3)"/>
+      <ellipse cx="157" cy="106" rx="2.5" ry="1.8" fill="rgba(180,80,0,0.3)"/>
+
+      <!-- Tuft on head -->
+      <path d="M 145 47 Q 140 30 152 25 Q 145 38 154 38 Q 148 30 158 22 Q 150 38 158 44 Q 155 40 160 34 Q 155 45 150 48" fill="#FFD700" opacity="0.8"/>
+
+      <!-- Eyebrows (subtle) -->
+      <path d="M 114 80 Q 122 76 134 79" fill="none" stroke="rgba(180,140,0,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M 186 80 Q 178 76 166 79" fill="none" stroke="rgba(180,140,0,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+
+      <defs>
+        <radialGradient id="bodyGrad2" cx="45%" cy="30%">
+          <stop offset="0%" stop-color="#FFE44D"/>
+          <stop offset="55%" stop-color="#FFD700"/>
+          <stop offset="100%" stop-color="#E6A800"/>
+        </radialGradient>
+        <radialGradient id="bodyShine2" cx="40%" cy="20%">
+          <stop offset="0%" stop-color="white"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+        <radialGradient id="headGrad2" cx="45%" cy="35%">
+          <stop offset="0%" stop-color="#FFE863"/>
+          <stop offset="100%" stop-color="#FFCC00"/>
+        </radialGradient>
+        <radialGradient id="headShine2" cx="35%" cy="25%">
+          <stop offset="0%" stop-color="white"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+        <radialGradient id="beakGrad2" cx="50%" cy="30%">
+          <stop offset="0%" stop-color="#FFa020"/>
+          <stop offset="100%" stop-color="#E65100"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="bubbles-container" id="bubblesContainer"></div>
+
+  <div class="title">GAIMS Duck</div>
+  <div class="subtitle">Klik op de eend • Jouw AI-assistent</div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="toggleSunglasses()">🕶️ Cool Mode</button>
+  <button class="ctrl-btn" onclick="toggleDisco()">🪩 Disco</button>
+  <button class="ctrl-btn" onclick="exportSVG()">📥 Download SVG</button>
+  <button class="ctrl-btn" onclick="toggleDarkLight()">🌓 Achtergrond</button>
+</div>
+
+<script>
+  const quotes = [
+    "Kwak! 🦆",
+    "AI is geen raketwetenschap... toch? 🚀",
+    "Niet lullen, maar automatiseren! ⚙️",
+    "GAIMS on! 🎮",
+    "Heb je al een workflow gemaakt vandaag?",
+    "Ik ben slimmer dan ik eruit zie! 🧠",
+    "Data is het nieuwe goud! ✨",
+    "Kwak kwak, tijd voor innovatie!",
+    "Automatiseer alles! 🤖",
+    "Wie heeft er een helpdesk als je mij hebt?",
+    "Even debuggen... kwak! 🐛",
+    "AI + Gemeente = 💪",
+    "n8n + badeend = ❤️",
+    "Stel je vraag, ik kwak het antwoord!",
+    "Ik zwem in de data! 📊",
+  ];
+
+  let quoteIndex = 0;
+  let sunglassesOn = false;
+  let discoOn = false;
+  let lightBg = false;
+
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+    star.style.setProperty('--max-op', (0.3 + Math.random() * 0.7));
+    star.style.animationDelay = Math.random() * 3 + 's';
+    starsEl.appendChild(star);
+  }
+
+  // Bubbles
+  function createBubble() {
+    const container = document.getElementById('bubblesContainer');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    const size = 6 + Math.random() * 16;
+    bubble.style.width = size + 'px';
+    bubble.style.height = size + 'px';
+    bubble.style.left = (20 + Math.random() * 60) + '%';
+    bubble.style.bottom = '0';
+    bubble.style.animationDuration = (3 + Math.random() * 4) + 's';
+    bubble.style.animationDelay = Math.random() * 2 + 's';
+    container.appendChild(bubble);
+    setTimeout(() => bubble.remove(), 7000);
+  }
+  setInterval(createBubble, 600);
+
+  function quack() {
+    const bubble = document.getElementById('speechBubble');
+    bubble.classList.remove('show');
+    spawnParticles();
+    createRipple();
+
+    setTimeout(() => {
+      quoteIndex = (quoteIndex + 1) % quotes.length;
+      bubble.textContent = quotes[quoteIndex];
+      bubble.classList.add('show');
+    }, 150);
+
+    setTimeout(() => bubble.classList.remove('show'), 3500);
+    playQuack();
+  }
+
+  function spawnParticles() {
+    const emojis = ['💧', '✨', '🦆', '💛', '⭐'];
+    const duck = document.getElementById('duck');
+    const rect = duck.getBoundingClientRect();
+    const scene = document.getElementById('scene');
+
+    for (let i = 0; i < 6; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      const tx = (Math.random() - 0.5) * 200;
+      const ty = -50 - Math.random() * 150;
+      const rot = (Math.random() - 0.5) * 360;
+      p.style.setProperty('--tx', tx + 'px');
+      p.style.setProperty('--ty', ty + 'px');
+      p.style.setProperty('--rot', rot + 'deg');
+      p.style.left = (rect.left - scene.getBoundingClientRect().left + rect.width/2) + 'px';
+      p.style.top = (rect.top - scene.getBoundingClientRect().top + rect.height/2) + 'px';
+      scene.appendChild(p);
+      setTimeout(() => p.remove(), 1000);
+    }
+  }
+
+  function createRipple() {
+    const scene = document.getElementById('scene');
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    ripple.style.left = '50%';
+    ripple.style.bottom = '110px';
+    ripple.style.transform = 'translateX(-50%)';
+    scene.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 1500);
+  }
+
+  function playQuack() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
+  }
+
+  function toggleSunglasses() {
+    sunglassesOn = !sunglassesOn;
+    document.getElementById('sunglasses').classList.toggle('on', sunglassesOn);
+    document.querySelectorAll('.ctrl-btn')[0].classList.toggle('active', sunglassesOn);
+  }
+
+  let discoInterval;
+  function toggleDisco() {
+    discoOn = !discoOn;
+    document.querySelectorAll('.ctrl-btn')[1].classList.toggle('active', discoOn);
+    if (discoOn) {
+      discoInterval = setInterval(() => {
+        const hue = Math.random() * 360;
+        document.body.style.background = `hsl(${hue}, 40%, 12%)`;
+        document.querySelector('.duck-container').style.filter = `drop-shadow(0 0 40px hsl(${hue}, 80%, 60%))`;
+      }, 400);
+    } else {
+      clearInterval(discoInterval);
+      document.body.style.background = lightBg ? '#f0f4f8' : 'var(--bg-dark)';
+      document.querySelector('.duck-container').style.filter = '';
+    }
+  }
+
+  function toggleDarkLight() {
+    lightBg = !lightBg;
+    if (!discoOn) {
+      document.body.style.background = lightBg ? '#f0f4f8' : 'var(--bg-dark)';
+    }
+    document.querySelector('.title').style.color = lightBg ? '#333' : 'var(--duck-yellow)';
+    document.querySelector('.subtitle').style.color = lightBg ? '#666' : 'var(--text-light)';
+    starsEl.style.display = lightBg ? 'none' : 'block';
+    document.querySelectorAll('.ctrl-btn')[3].classList.toggle('active', lightBg);
+  }
+
+  function exportSVG() {
+    const svg = document.querySelector('.duck-svg').outerHTML;
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gaims-badeend.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Initial bubble
+  setTimeout(() => {
+    const bubble = document.getElementById('speechBubble');
+    bubble.textContent = 'Kwak! Klik op mij! 🦆';
+    bubble.classList.add('show');
+    setTimeout(() => bubble.classList.remove('show'), 3000);
+  }, 1000);
+</script>
+
+</body>
+</html>

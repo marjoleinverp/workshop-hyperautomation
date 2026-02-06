@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape the Manual Work - Hyperautomation Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --cyan: #06b6d4;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-400: #94a3b8;
+            --slate-200: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--slate-900);
+            color: var(--white);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .screen.active { display: flex; }
+
+        /* ===================== ANIMATIONS ===================== */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.3); } 50% { box-shadow: 0 0 40px rgba(16,185,129,0.6); } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes countUp { from { transform: scale(1.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+        .animate-pulse { animation: pulse 0.5s ease-out; }
+        .animate-shake { animation: shake 0.3s ease-out; }
+        .animate-glow { animation: glow 2s ease-in-out infinite; }
+        .animate-bounce { animation: bounceIn 0.5s ease-out; }
+
+        /* ===================== HEADER ===================== */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2rem;
+            background: rgba(0,0,0,0.6);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .round-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .round-badge {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .round-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .round-type.speed { background: var(--danger); }
+        .round-type.build { background: var(--cyan); }
+        .round-type.scenario { background: var(--warning); }
+        .round-type.sabotage { background: var(--pink); }
+        .round-type.bet { background: var(--purple); }
+
+        .timer-container {
+            text-align: center;
+        }
+
+        .timer {
+            font-size: 3.5rem;
+            font-weight: 900;
+            font-family: monospace;
+            color: var(--secondary);
+            text-shadow: 0 0 20px rgba(16,185,129,0.5);
+        }
+        .timer.warning { color: var(--warning); text-shadow: 0 0 20px rgba(245,158,11,0.5); }
+        .timer.danger { color: var(--danger); animation: pulse 0.5s ease-in-out infinite; text-shadow: 0 0 20px rgba(239,68,68,0.5); }
+
+        .scores-display {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .team-score {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 0.5rem 1.5rem;
+            text-align: center;
+            min-width: 140px;
+        }
+        .team-score.team-b { border-color: var(--purple); }
+        .team-score .team-name { font-size: 0.7rem; color: var(--slate-400); text-transform: uppercase; }
+        .team-score .score { font-size: 2rem; font-weight: 800; }
+        .team-score.team-a .score { color: var(--primary); }
+        .team-score.team-b .score { color: var(--purple); }
+        .team-score .streak { font-size: 0.7rem; color: var(--secondary); }
+
+        /* ===================== LOBBY ===================== */
+        .lobby {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(59,130,246,0.1) 0%, var(--slate-900) 70%);
+        }
+
+        .game-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 50%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 1.25rem;
+            color: var(--slate-400);
+            margin-bottom: 3rem;
+        }
+
+        .join-box {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 2rem 4rem;
+            margin-bottom: 2rem;
+        }
+
+        .join-url {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            font-family: monospace;
+        }
+
+        .teams-lobby {
+            display: flex;
+            gap: 3rem;
+            margin: 2rem 0;
+        }
+
+        .team-lobby-box {
+            background: rgba(255,255,255,0.03);
+            border: 3px solid var(--primary);
+            border-radius: 16px;
+            padding: 2rem 3rem;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+        .team-lobby-box.team-b { border-color: var(--purple); }
+        .team-lobby-box h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .team-lobby-box .count { font-size: 4rem; font-weight: 900; }
+        .team-lobby-box.team-a .count { color: var(--primary); }
+        .team-lobby-box.team-b .count { color: var(--purple); }
+
+        .start-btn {
+            margin-top: 2rem;
+            padding: 1.5rem 4rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .start-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(16,185,129,0.4); }
+
+        /* ===================== MAIN GAME AREA ===================== */
+        .game-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        /* ===================== INTRO CARDS ===================== */
+        .intro-card {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        .intro-card h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-card p {
+            font-size: 1.25rem;
+            color: var(--slate-300);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .concept-box {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: left;
+            transition: all 0.3s;
+        }
+        .concept-box:hover { border-color: var(--secondary); transform: translateY(-3px); }
+        .concept-box.highlight { border-color: var(--secondary); background: rgba(16,185,129,0.1); }
+        .concept-box h4 { color: var(--secondary); margin-bottom: 0.5rem; font-size: 1.125rem; }
+        .concept-box p { color: var(--slate-400); font-size: 0.875rem; }
+
+        /* ===================== SPEED ROUND ===================== */
+        .speed-question {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.05) 100%);
+            border: 2px solid var(--danger);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .question-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--danger);
+            margin-bottom: 0.5rem;
+        }
+
+        .question-card h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .speed-indicator {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.125rem;
+            color: var(--warning);
+        }
+
+        .speed-indicator .bonus {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { border-color: var(--primary); background: rgba(59,130,246,0.1); transform: scale(1.02); }
+        .option-btn .letter {
+            display: inline-flex;
+            width: 36px;
+            height: 36px;
+            background: var(--slate-700);
+            border-radius: 10px;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+        }
+        .option-btn h4 { font-size: 1.125rem; margin-bottom: 0.25rem; }
+        .option-btn p { font-size: 0.875rem; color: var(--slate-400); }
+
+        .option-btn.correct { border-color: var(--secondary); background: rgba(16,185,129,0.2); animation: glow 1s ease-out; }
+        .option-btn.correct .letter { background: var(--secondary); }
+        .option-btn.wrong { border-color: var(--danger); background: rgba(239,68,68,0.1); opacity: 0.5; }
+
+        .team-votes {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+        }
+
+        .team-vote {
+            text-align: center;
+        }
+        .team-vote .label { font-size: 0.75rem; color: var(--slate-400); text-transform: uppercase; margin-bottom: 0.5rem; }
+        .team-vote .answer { font-size: 2.5rem; font-weight: 900; }
+        .team-vote.team-a .answer { color: var(--primary); }
+        .team-vote.team-b .answer { color: var(--purple); }
+        .team-vote .speed { font-size: 0.75rem; color: var(--secondary); margin-top: 0.25rem; }
+
+        /* ===================== BUILD ROUND (Drag & Drop) ===================== */
+        .build-container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .build-scenario {
+            background: rgba(6,182,212,0.1);
+            border: 2px solid var(--cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .build-area {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .blocks-source {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-height: 300px;
+        }
+
+        .blocks-source h4 {
+            font-size: 0.875rem;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .workflow-block {
+            background: var(--slate-700);
+            border: 2px solid var(--slate-600);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: grab;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .workflow-block:hover { border-color: var(--primary); transform: translateX(5px); }
+        .workflow-block.trigger { border-color: var(--secondary); background: rgba(16,185,129,0.1); }
+        .workflow-block.ai { border-color: var(--purple); background: rgba(139,92,246,0.1); }
+        .workflow-block.action { border-color: var(--primary); background: rgba(59,130,246,0.1); }
+
+        .workflow-block .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+        .workflow-block.trigger .icon { background: var(--secondary); }
+        .workflow-block.ai .icon { background: var(--purple); }
+        .workflow-block.action .icon { background: var(--primary); }
+
+        .workflow-target {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid var(--secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-height: 300px;
+        }
+
+        .workflow-target h4 {
+            font-size: 0.875rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone {
+            background: rgba(16,185,129,0.05);
+            border: 2px dashed var(--secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--slate-400);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .drop-zone.over { background: rgba(16,185,129,0.2); border-style: solid; }
+        .drop-zone.filled { background: transparent; border: none; padding: 0; }
+
+        .arrow-down {
+            text-align: center;
+            color: var(--slate-400);
+            font-size: 1.5rem;
+            margin: 0.25rem 0;
+        }
+
+        /* ===================== BETTING ROUND ===================== */
+        .bet-container {
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .bet-question-preview {
+            background: rgba(139,92,246,0.1);
+            border: 2px solid var(--purple);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .bet-question-preview h3 {
+            font-size: 1.5rem;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .bet-question-preview p {
+            color: var(--slate-400);
+        }
+
+        .bet-options {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .bet-btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: 2px solid var(--slate-600);
+            background: rgba(255,255,255,0.03);
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bet-btn:hover { border-color: var(--purple); background: rgba(139,92,246,0.1); }
+        .bet-btn.selected { border-color: var(--purple); background: var(--purple); }
+
+        .current-bets {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+        }
+
+        .team-bet {
+            text-align: center;
+        }
+        .team-bet .label { font-size: 0.75rem; color: var(--slate-400); text-transform: uppercase; }
+        .team-bet .amount { font-size: 2rem; font-weight: 800; }
+
+        /* ===================== SABOTAGE ROUND ===================== */
+        .sabotage-container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .power-ups-display {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .power-up {
+            background: rgba(236,72,153,0.1);
+            border: 2px solid var(--pink);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-width: 150px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .power-up:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(236,72,153,0.3); }
+        .power-up .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .power-up h4 { font-size: 0.875rem; margin-bottom: 0.25rem; }
+        .power-up p { font-size: 0.75rem; color: var(--slate-400); }
+
+        /* ===================== POINTS POPUP ===================== */
+        .points-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--secondary);
+            text-shadow: 0 0 50px rgba(16,185,129,0.8);
+            animation: countUp 0.5s ease-out;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .points-popup.negative { color: var(--danger); text-shadow: 0 0 50px rgba(239,68,68,0.8); }
+
+        /* ===================== NAVIGATION ===================== */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(0,0,0,0.4);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            border: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .nav-btn.primary { background: var(--secondary); color: white; }
+        .nav-btn.primary:hover { background: var(--secondary-dark); transform: translateY(-2px); }
+        .nav-btn.secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+
+        .nav-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-dot.active { background: var(--secondary); transform: scale(1.3); }
+        .nav-dot.completed { background: var(--primary); }
+
+        /* ===================== RESULTS ===================== */
+        .results-screen {
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(ellipse at center, rgba(16,185,129,0.1) 0%, var(--slate-900) 70%);
+        }
+
+        .winner-announcement {
+            text-align: center;
+            animation: bounceIn 0.8s ease-out;
+        }
+
+        .winner-announcement .trophy {
+            font-size: 8rem;
+            margin-bottom: 1rem;
+        }
+
+        .winner-announcement h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .final-scores {
+            display: flex;
+            justify-content: center;
+            gap: 6rem;
+        }
+
+        .final-team {
+            text-align: center;
+        }
+        .final-team .name { font-size: 1.25rem; color: var(--slate-400); margin-bottom: 0.5rem; }
+        .final-team .score { font-size: 6rem; font-weight: 900; }
+        .final-team.winner .score { color: var(--secondary); text-shadow: 0 0 40px rgba(16,185,129,0.5); }
+
+        /* ===================== FINALE ===================== */
+        .finale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+            width: 100%;
+            max-width: 1200px;
+            padding: 1rem;
+        }
+
+        .idea-card {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+        .idea-card:hover { border-color: var(--secondary); }
+        .idea-card .team-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .idea-card .team-tag.team-a { background: rgba(59,130,246,0.2); color: var(--primary); }
+        .idea-card .team-tag.team-b { background: rgba(139,92,246,0.2); color: var(--purple); }
+        .idea-card h4 { font-size: 0.9rem; margin-bottom: 0.5rem; line-height: 1.4; }
+        .idea-card .votes { color: var(--secondary); font-weight: 700; font-size: 1.25rem; }
+
+        /* ===================== RESPONSIVE ===================== */
+        @media (max-width: 1024px) {
+            .concept-grid, .options-grid { grid-template-columns: 1fr; }
+            .game-logo { font-size: 2.5rem; }
+            .build-area { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== LOBBY ==================== -->
+    <div class="screen lobby active" id="screen-lobby">
+        <h1 class="game-logo">ESCAPE THE MANUAL WORK</h1>
+        <p class="tagline">De ultieme Hyperautomation Challenge</p>
+
+        <div class="join-box">
+            <p style="color: var(--slate-400); margin-bottom: 0.5rem;">Join op je telefoon:</p>
+            <div class="join-url">speler.html</div>
+        </div>
+
+        <div class="teams-lobby">
+            <div class="team-lobby-box team-a">
+                <h3>Team Blauw</h3>
+                <div class="count" id="team-a-count">0</div>
+            </div>
+            <div class="team-lobby-box team-b">
+                <h3>Team Paars</h3>
+                <div class="count" id="team-b-count">0</div>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- ==================== MAIN GAME ==================== -->
+    <div class="screen" id="screen-game">
+        <div class="game-header">
+            <div class="round-info">
+                <div class="round-badge" id="round-badge">Ronde 1/8</div>
+                <div class="round-type speed" id="round-type">Speed</div>
+            </div>
+            <div class="timer-container">
+                <div class="timer" id="timer">0:30</div>
+            </div>
+            <div class="scores-display">
+                <div class="team-score team-a">
+                    <div class="team-name">Team Blauw</div>
+                    <div class="score" id="score-a">0</div>
+                    <div class="streak" id="streak-a"></div>
+                </div>
+                <div class="team-score team-b">
+                    <div class="team-name">Team Paars</div>
+                    <div class="score" id="score-b">0</div>
+                    <div class="streak" id="streak-b"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-content" id="game-content">
+            <!-- Dynamic content -->
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-btn secondary" onclick="skipRound()">Skip</button>
+            <div class="nav-dots" id="nav-dots"></div>
+            <button class="nav-btn primary" onclick="nextRound()" id="next-btn">Volgende</button>
+        </div>
+    </div>
+
+    <!-- ==================== FINALE ==================== -->
+    <div class="screen" id="screen-finale">
+        <div class="game-header">
+            <div class="round-info">
+                <div class="round-badge" style="background: linear-gradient(135deg, var(--secondary) 0%, var(--warning) 100%);">FINALE</div>
+            </div>
+            <div class="timer-container">
+                <div class="timer" id="finale-timer">5:00</div>
+            </div>
+            <div class="scores-display">
+                <div class="team-score team-a">
+                    <div class="team-name">Team Blauw</div>
+                    <div class="score" id="finale-score-a">0</div>
+                </div>
+                <div class="team-score team-b">
+                    <div class="team-name">Team Paars</div>
+                    <div class="score" id="finale-score-b">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-content">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="font-size: 2rem; color: var(--secondary); margin-bottom: 0.5rem;">Pitch je eigen automation!</h2>
+                <p style="color: var(--slate-400);">Deelnemers dienen ideeen in. Stem op de beste!</p>
+            </div>
+            <div class="finale-grid" id="finale-grid">
+                <p style="color: var(--slate-400); text-align: center; grid-column: 1/-1; padding: 3rem;">
+                    Wachten op ideeen...
+                </p>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <div></div>
+            <div></div>
+            <button class="nav-btn primary" onclick="showResults()">Bekijk Winnaar</button>
+        </div>
+    </div>
+
+    <!-- ==================== RESULTS ==================== -->
+    <div class="screen results-screen" id="screen-results">
+        <div class="winner-announcement">
+            <div class="trophy">WINNAAR</div>
+            <h1 id="winner-text">Team Blauw!</h1>
+            <div class="final-scores">
+                <div class="final-team" id="final-team-a">
+                    <div class="name">Team Blauw</div>
+                    <div class="score" id="final-score-a">0</div>
+                </div>
+                <div class="final-team" id="final-team-b">
+                    <div class="name">Team Paars</div>
+                    <div class="score" id="final-score-b">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Points Popup -->
+    <div class="points-popup" id="points-popup" style="display: none;"></div>
+
+    <script>
+        // ================================================
+        // GAME ROUNDS - MIX VAN TYPES
+        // ================================================
+        const ROUNDS = [
+            // INTRO
+            {
+                type: 'intro',
+                title: 'Wat is Hyperautomation?',
+                content: `
+                    <div class="intro-card animate-in">
+                        <h2>Welkom bij de Challenge!</h2>
+                        <p>Jullie gaan strijden om te ontsnappen aan handmatig werk.<br>
+                        Maar eerst: wat IS hyperautomation eigenlijk?</p>
+                        <div class="concept-grid">
+                            <div class="concept-box">
+                                <h4>Automation</h4>
+                                <p>Simpele if-this-then-that regels</p>
+                            </div>
+                            <div class="concept-box">
+                                <h4>Workflow Automation</h4>
+                                <p>Systemen aan elkaar knopen</p>
+                            </div>
+                            <div class="concept-box highlight">
+                                <h4>Hyperautomation</h4>
+                                <p>AI die BEGRIJPT en BESLISSINGEN neemt</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            // SPEED ROUND 1
+            {
+                type: 'speed',
+                title: 'Speed Round!',
+                timeLimit: 20,
+                points: 100,
+                speedBonus: 50,
+                learn: {
+                    topic: 'Email Triggers',
+                    text: 'Een Email Trigger start automatisch een workflow zodra er een mail binnenkomt.'
+                },
+                question: 'Wat is het GROOTSTE voordeel van een AI Email Classifier vs gewone Outlook regels?',
+                options: [
+                    { id: 'a', text: 'Het is sneller', correct: false },
+                    { id: 'b', text: 'Het begrijpt CONTEXT, niet alleen keywords', correct: true },
+                    { id: 'c', text: 'Het is goedkoper', correct: false },
+                    { id: 'd', text: 'Het werkt offline', correct: false }
+                ]
+            },
+            // BUILD ROUND
+            {
+                type: 'build',
+                title: 'Bouw de Workflow!',
+                timeLimit: 45,
+                points: 200,
+                scenario: 'Een burger stuurt een klacht via email. Bouw de workflow die dit automatisch afhandelt.',
+                blocks: [
+                    { id: 'trigger', type: 'trigger', label: 'Email Trigger' },
+                    { id: 'ai', type: 'ai', label: 'AI: Classificeer klacht' },
+                    { id: 'router', type: 'action', label: 'Router: Juiste afdeling' },
+                    { id: 'topdesk', type: 'action', label: 'Topdesk: Maak ticket' },
+                    { id: 'teams', type: 'action', label: 'Teams: Notificatie' },
+                    { id: 'wrong1', type: 'action', label: 'Print document' },
+                    { id: 'wrong2', type: 'action', label: 'Wacht 2 weken' }
+                ],
+                correctOrder: ['trigger', 'ai', 'router', 'topdesk', 'teams']
+            },
+            // SPEED ROUND 2 - INSTINKER
+            {
+                type: 'speed',
+                title: 'Instinker Alert!',
+                timeLimit: 25,
+                points: 150,
+                speedBonus: 75,
+                learn: {
+                    topic: 'Intake Automation',
+                    text: 'Binnenkomende berichten kunnen automatisch geclassificeerd en gerouteerd worden door AI.'
+                },
+                question: 'Een burger mailt een vraag. Hoe pak je dit aan met hyperautomation?',
+                options: [
+                    { id: 'a', text: 'Trigger op inbox -> AI classificeert -> Route naar juiste team', correct: true },
+                    { id: 'b', text: 'Medewerker leest elke mail en stuurt handmatig door', correct: false },
+                    { id: 'c', text: 'Alle mail in 1 inbox, team zoekt zelf uit wie het oppakt', correct: false },
+                    { id: 'd', text: 'Auto-reply: "We nemen binnen 5 dagen contact op"', correct: false }
+                ]
+            },
+            // SCENARIO ROUND
+            {
+                type: 'scenario',
+                title: 'Case Study',
+                timeLimit: 60,
+                points: 250,
+                scenario: `
+                    <strong>Situatie:</strong> De afdeling Vergunningen krijgt 200 aanvragen per week.
+                    Elke aanvraag moet gecheckt worden tegen BAG, Kadaster en het bestemmingsplan.
+                    Dit kost nu 45 minuten per aanvraag.<br><br>
+                    <strong>Vraag:</strong> Welke combinatie van automations bespaart de MEESTE tijd?
+                `,
+                options: [
+                    { id: 'a', text: 'Alleen BAG-check automatiseren', correct: false },
+                    { id: 'b', text: 'Webhook + Parallel API calls + AI check + Auto-rapport', correct: true },
+                    { id: 'c', text: 'Formulier met verplichte velden', correct: false },
+                    { id: 'd', text: 'Extra medewerker inhuren', correct: false }
+                ]
+            },
+            // BET ROUND
+            {
+                type: 'bet',
+                title: 'Double or Nothing!',
+                minBet: 50,
+                maxBet: 200,
+                question: 'Wat doet een Webhook?',
+                options: [
+                    { id: 'a', text: 'Stuurt een signaal naar een workflow zodra er iets gebeurt', correct: true },
+                    { id: 'b', text: 'Haalt data op uit een database', correct: false },
+                    { id: 'c', text: 'Maakt een backup van bestanden', correct: false },
+                    { id: 'd', text: 'Verstuurt bulk emails', correct: false }
+                ]
+            },
+            // SPEED ROUND 3
+            {
+                type: 'speed',
+                title: 'Speed Round!',
+                timeLimit: 15,
+                points: 100,
+                speedBonus: 100,
+                question: 'Welke n8n node gebruik je om te wachten op goedkeuring?',
+                options: [
+                    { id: 'a', text: 'Wait node', correct: true },
+                    { id: 'b', text: 'Delay node', correct: false },
+                    { id: 'c', text: 'Pause node', correct: false },
+                    { id: 'd', text: 'Sleep node', correct: false }
+                ]
+            },
+            // FINALE
+            {
+                type: 'finale',
+                title: 'De Grote Finale!',
+                timeLimit: 300
+            }
+        ];
+
+        // ================================================
+        // STATE
+        // ================================================
+        const STORAGE_KEY = 'escape_game_state';
+
+        let state = {
+            currentRound: 0,
+            teams: {
+                a: { score: 0, players: [], votes: {}, streak: 0, bet: 0, answerTime: null },
+                b: { score: 0, players: [], votes: {}, streak: 0, bet: 0, answerTime: null }
+            },
+            submissions: [],
+            timeLeft: 0,
+            timerInterval: null,
+            roundStartTime: null
+        };
+
+        // ================================================
+        // INIT
+        // ================================================
+        function init() {
+            loadState();
+            createNavDots();
+            startSync();
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state.teams = parsed.teams || state.teams;
+                state.submissions = parsed.submissions || [];
+            }
+            updateScores();
+            updateLobbyCount();
+        }
+
+        function startSync() {
+            setInterval(() => {
+                loadState();
+                updateLobbyCount();
+            }, 1000);
+        }
+
+        function updateLobbyCount() {
+            document.getElementById('team-a-count').textContent = state.teams.a.players.length;
+            document.getElementById('team-b-count').textContent = state.teams.b.players.length;
+        }
+
+        function updateScores() {
+            document.getElementById('score-a').textContent = state.teams.a.score;
+            document.getElementById('score-b').textContent = state.teams.b.score;
+
+            // Streaks
+            const streakA = state.teams.a.streak > 1 ? `${state.teams.a.streak}x streak!` : '';
+            const streakB = state.teams.b.streak > 1 ? `${state.teams.b.streak}x streak!` : '';
+            document.getElementById('streak-a').textContent = streakA;
+            document.getElementById('streak-b').textContent = streakB;
+        }
+
+        function createNavDots() {
+            const container = document.getElementById('nav-dots');
+            container.innerHTML = '';
+            ROUNDS.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                container.appendChild(dot);
+            });
+        }
+
+        function updateNavDots() {
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i < state.currentRound) dot.classList.add('completed');
+                if (i === state.currentRound) dot.classList.add('active');
+            });
+        }
+
+        // ================================================
+        // SCREENS
+        // ================================================
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + id).classList.add('active');
+        }
+
+        // ================================================
+        // GAME FLOW
+        // ================================================
+        function startGame() {
+            state.currentRound = 0;
+            state.teams.a.score = 0;
+            state.teams.b.score = 0;
+            state.teams.a.streak = 0;
+            state.teams.b.streak = 0;
+            saveState();
+            showScreen('game');
+            loadRound(0);
+        }
+
+        function loadRound(index) {
+            if (index >= ROUNDS.length) {
+                showScreen('finale');
+                startFinale();
+                return;
+            }
+
+            const round = ROUNDS[index];
+            state.currentRound = index;
+            state.teams.a.votes = {};
+            state.teams.b.votes = {};
+            state.teams.a.answerTime = null;
+            state.teams.b.answerTime = null;
+            state.roundStartTime = Date.now();
+
+            // Update header
+            document.getElementById('round-badge').textContent = `Ronde ${index + 1}/${ROUNDS.length}`;
+            updateRoundType(round.type);
+            updateNavDots();
+
+            // Load content based on type
+            switch (round.type) {
+                case 'intro': loadIntroRound(round); break;
+                case 'speed': loadSpeedRound(round); break;
+                case 'build': loadBuildRound(round); break;
+                case 'scenario': loadScenarioRound(round); break;
+                case 'bet': loadBetRound(round); break;
+                case 'finale': showScreen('finale'); startFinale(); return;
+            }
+
+            saveState();
+        }
+
+        function updateRoundType(type) {
+            const el = document.getElementById('round-type');
+            el.className = 'round-type ' + type;
+            const labels = {
+                intro: 'Intro',
+                speed: 'Speed',
+                build: 'Bouw',
+                scenario: 'Case',
+                bet: 'Bet',
+                finale: 'Finale'
+            };
+            el.textContent = labels[type] || type;
+        }
+
+        function nextRound() {
+            clearInterval(state.timerInterval);
+            loadRound(state.currentRound + 1);
+        }
+
+        function skipRound() {
+            nextRound();
+        }
+
+        // ================================================
+        // TIMER
+        // ================================================
+        function startTimer(seconds) {
+            state.timeLeft = seconds;
+            updateTimerDisplay();
+
+            if (state.timerInterval) clearInterval(state.timerInterval);
+
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                updateTimerDisplay();
+
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timerInterval);
+                    revealAnswer();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timer = document.getElementById('timer');
+            const mins = Math.floor(state.timeLeft / 60);
+            const secs = state.timeLeft % 60;
+            timer.textContent = mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : secs;
+
+            timer.classList.remove('warning', 'danger');
+            if (state.timeLeft <= 10) timer.classList.add('danger');
+            else if (state.timeLeft <= 20) timer.classList.add('warning');
+        }
+
+        // ================================================
+        // ROUND: INTRO
+        // ================================================
+        function loadIntroRound(round) {
+            document.getElementById('timer').textContent = '--';
+            document.getElementById('game-content').innerHTML = round.content;
+        }
+
+        // ================================================
+        // ROUND: SPEED
+        // ================================================
+        function loadSpeedRound(round) {
+            const learnHtml = round.learn ? `
+                <div style="background: rgba(16,185,129,0.1); border: 2px solid var(--secondary); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                    <strong style="color: var(--secondary);">${round.learn.topic}:</strong>
+                    <span style="color: var(--slate-300);"> ${round.learn.text}</span>
+                </div>
+            ` : '';
+
+            document.getElementById('game-content').innerHTML = `
+                <div class="speed-question animate-in">
+                    ${learnHtml}
+                    <div class="question-card">
+                        <div class="label">Vraag</div>
+                        <h3>${round.question}</h3>
+                    </div>
+
+                    <div class="speed-indicator">
+                        Snelste correcte team krijgt <span class="bonus">+${round.speedBonus} bonus!</span>
+                    </div>
+
+                    <div class="options-grid">
+                        ${round.options.map(opt => `
+                            <div class="option-btn" data-id="${opt.id}" data-correct="${opt.correct}">
+                                <div class="letter">${opt.id.toUpperCase()}</div>
+                                <h4>${opt.text}</h4>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="team-votes">
+                        <div class="team-vote team-a">
+                            <div class="label">Team Blauw</div>
+                            <div class="answer" id="vote-a">...</div>
+                            <div class="speed" id="speed-a"></div>
+                        </div>
+                        <div class="team-vote team-b">
+                            <div class="label">Team Paars</div>
+                            <div class="answer" id="vote-b">...</div>
+                            <div class="speed" id="speed-b"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            startTimer(round.timeLimit);
+
+            // Poll for votes
+            const voteInterval = setInterval(() => {
+                loadState();
+                updateVoteDisplay();
+
+                // Check if both teams answered
+                if (state.teams.a.answerTime && state.teams.b.answerTime) {
+                    clearInterval(voteInterval);
+                }
+            }, 500);
+        }
+
+        function updateVoteDisplay() {
+            const voteA = getMostVotedOption('a');
+            const voteB = getMostVotedOption('b');
+
+            document.getElementById('vote-a').textContent = voteA ? voteA.toUpperCase() : '...';
+            document.getElementById('vote-b').textContent = voteB ? voteB.toUpperCase() : '...';
+
+            if (state.teams.a.answerTime) {
+                const time = ((state.teams.a.answerTime - state.roundStartTime) / 1000).toFixed(1);
+                document.getElementById('speed-a').textContent = time + 's';
+            }
+            if (state.teams.b.answerTime) {
+                const time = ((state.teams.b.answerTime - state.roundStartTime) / 1000).toFixed(1);
+                document.getElementById('speed-b').textContent = time + 's';
+            }
+        }
+
+        function getMostVotedOption(team) {
+            const votes = state.teams[team].votes || {};
+            let max = 0, winner = null;
+            for (const [opt, count] of Object.entries(votes)) {
+                if (count > max) { max = count; winner = opt; }
+            }
+            return winner;
+        }
+
+        function revealAnswer() {
+            const round = ROUNDS[state.currentRound];
+            if (!round.options) return;
+
+            const correct = round.options.find(o => o.correct);
+            const voteA = getMostVotedOption('a');
+            const voteB = getMostVotedOption('b');
+
+            // Visual feedback
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.correct === 'true') {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            // Calculate points
+            const aCorrect = voteA === correct.id;
+            const bCorrect = voteB === correct.id;
+
+            let aPoints = 0, bPoints = 0;
+
+            if (aCorrect) {
+                aPoints = round.points;
+                state.teams.a.streak++;
+
+                // Speed bonus
+                if (round.speedBonus && state.teams.a.answerTime && state.teams.b.answerTime) {
+                    if (state.teams.a.answerTime < state.teams.b.answerTime) {
+                        aPoints += round.speedBonus;
+                    }
+                } else if (round.speedBonus && state.teams.a.answerTime && !state.teams.b.answerTime) {
+                    aPoints += round.speedBonus;
+                }
+
+                // Streak bonus
+                if (state.teams.a.streak > 1) {
+                    aPoints += (state.teams.a.streak - 1) * 25;
+                }
+            } else {
+                state.teams.a.streak = 0;
+            }
+
+            if (bCorrect) {
+                bPoints = round.points;
+                state.teams.b.streak++;
+
+                if (round.speedBonus && state.teams.a.answerTime && state.teams.b.answerTime) {
+                    if (state.teams.b.answerTime < state.teams.a.answerTime) {
+                        bPoints += round.speedBonus;
+                    }
+                } else if (round.speedBonus && state.teams.b.answerTime && !state.teams.a.answerTime) {
+                    bPoints += round.speedBonus;
+                }
+
+                if (state.teams.b.streak > 1) {
+                    bPoints += (state.teams.b.streak - 1) * 25;
+                }
+            } else {
+                state.teams.b.streak = 0;
+            }
+
+            state.teams.a.score += aPoints;
+            state.teams.b.score += bPoints;
+
+            updateScores();
+            saveState();
+
+            // Show points popup
+            if (aPoints > 0 || bPoints > 0) {
+                showPointsPopup(Math.max(aPoints, bPoints));
+            }
+        }
+
+        function showPointsPopup(points, negative = false) {
+            const popup = document.getElementById('points-popup');
+            popup.textContent = (negative ? '-' : '+') + points;
+            popup.className = 'points-popup' + (negative ? ' negative' : '');
+            popup.style.display = 'block';
+
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 1500);
+        }
+
+        // ================================================
+        // ROUND: BUILD (Drag & Drop)
+        // ================================================
+        function loadBuildRound(round) {
+            document.getElementById('game-content').innerHTML = `
+                <div class="build-container animate-in">
+                    <div class="build-scenario">
+                        <strong>Scenario:</strong> ${round.scenario}
+                    </div>
+
+                    <div class="build-area">
+                        <div class="blocks-source">
+                            <h4>Beschikbare Blokken</h4>
+                            <div id="blocks-list">
+                                ${round.blocks.map(b => `
+                                    <div class="workflow-block ${b.type}" draggable="true" data-id="${b.id}">
+                                        <div class="icon">${b.type === 'trigger' ? 'T' : b.type === 'ai' ? 'AI' : 'A'}</div>
+                                        <span>${b.label}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="workflow-target">
+                            <h4>Jouw Workflow (sleep in volgorde)</h4>
+                            ${round.correctOrder.map((_, i) => `
+                                <div class="drop-zone" data-index="${i}">Stap ${i + 1}</div>
+                                ${i < round.correctOrder.length - 1 ? '<div class="arrow-down">|</div>' : ''}
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            startTimer(round.timeLimit);
+            initDragDrop();
+        }
+
+        function initDragDrop() {
+            const blocks = document.querySelectorAll('.workflow-block');
+            const zones = document.querySelectorAll('.drop-zone');
+
+            blocks.forEach(block => {
+                block.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', block.dataset.id);
+                    block.style.opacity = '0.5';
+                });
+                block.addEventListener('dragend', () => {
+                    block.style.opacity = '1';
+                });
+            });
+
+            zones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('over');
+                });
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('over');
+                });
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('over');
+
+                    const id = e.dataTransfer.getData('text/plain');
+                    const block = document.querySelector(`.workflow-block[data-id="${id}"]`);
+
+                    if (block && !zone.classList.contains('filled')) {
+                        const clone = block.cloneNode(true);
+                        zone.innerHTML = '';
+                        zone.appendChild(clone);
+                        zone.classList.add('filled');
+                        block.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // ================================================
+        // ROUND: SCENARIO
+        // ================================================
+        function loadScenarioRound(round) {
+            document.getElementById('game-content').innerHTML = `
+                <div class="speed-question animate-in">
+                    <div class="question-card" style="border-color: var(--warning); background: rgba(245,158,11,0.1);">
+                        <div class="label" style="color: var(--warning);">Case Study</div>
+                        <p style="font-size: 1rem; text-align: left; line-height: 1.6;">${round.scenario}</p>
+                    </div>
+
+                    <div class="options-grid">
+                        ${round.options.map(opt => `
+                            <div class="option-btn" data-id="${opt.id}" data-correct="${opt.correct}">
+                                <div class="letter">${opt.id.toUpperCase()}</div>
+                                <h4>${opt.text}</h4>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="team-votes">
+                        <div class="team-vote team-a">
+                            <div class="label">Team Blauw</div>
+                            <div class="answer" id="vote-a">...</div>
+                        </div>
+                        <div class="team-vote team-b">
+                            <div class="label">Team Paars</div>
+                            <div class="answer" id="vote-b">...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            startTimer(round.timeLimit);
+
+            setInterval(() => {
+                loadState();
+                updateVoteDisplay();
+            }, 500);
+        }
+
+        // ================================================
+        // ROUND: BET
+        // ================================================
+        function loadBetRound(round) {
+            document.getElementById('game-content').innerHTML = `
+                <div class="bet-container animate-in">
+                    <div class="bet-question-preview">
+                        <h3>Vraag komt zo...</h3>
+                        <p>Eerst: hoeveel punten zetten jullie in?</p>
+                    </div>
+
+                    <p style="color: var(--slate-400); margin-bottom: 1rem;">Teams kiezen hun inzet via telefoon</p>
+
+                    <div class="current-bets">
+                        <div class="team-bet">
+                            <div class="label">Team Blauw zet in:</div>
+                            <div class="amount" id="bet-a" style="color: var(--primary);">...</div>
+                        </div>
+                        <div class="team-bet">
+                            <div class="label">Team Paars zet in:</div>
+                            <div class="amount" id="bet-b" style="color: var(--purple);">...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('timer').textContent = 'BET';
+
+            // Poll for bets
+            const betPoll = setInterval(() => {
+                loadState();
+                document.getElementById('bet-a').textContent = state.teams.a.bet || '...';
+                document.getElementById('bet-b').textContent = state.teams.b.bet || '...';
+
+                if (state.teams.a.bet && state.teams.b.bet) {
+                    clearInterval(betPoll);
+                    setTimeout(() => showBetQuestion(round), 1000);
+                }
+            }, 500);
+        }
+
+        function showBetQuestion(round) {
+            document.getElementById('game-content').innerHTML = `
+                <div class="speed-question animate-in">
+                    <div class="question-card" style="border-color: var(--purple); background: rgba(139,92,246,0.1);">
+                        <div class="label" style="color: var(--purple);">Double or Nothing!</div>
+                        <h3>${round.question}</h3>
+                    </div>
+
+                    <div class="options-grid">
+                        ${round.options.map(opt => `
+                            <div class="option-btn" data-id="${opt.id}" data-correct="${opt.correct}">
+                                <div class="letter">${opt.id.toUpperCase()}</div>
+                                <h4>${opt.text}</h4>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="team-votes">
+                        <div class="team-vote team-a">
+                            <div class="label">Team Blauw (inzet: ${state.teams.a.bet})</div>
+                            <div class="answer" id="vote-a">...</div>
+                        </div>
+                        <div class="team-vote team-b">
+                            <div class="label">Team Paars (inzet: ${state.teams.b.bet})</div>
+                            <div class="answer" id="vote-b">...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            startTimer(20);
+
+            setInterval(() => {
+                loadState();
+                updateVoteDisplay();
+            }, 500);
+        }
+
+        // ================================================
+        // FINALE
+        // ================================================
+        function startFinale() {
+            document.getElementById('finale-score-a').textContent = state.teams.a.score;
+            document.getElementById('finale-score-b').textContent = state.teams.b.score;
+
+            state.timeLeft = 300;
+            updateFinaleTimer();
+
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                updateFinaleTimer();
+                if (state.timeLeft <= 0) clearInterval(state.timerInterval);
+            }, 1000);
+
+            setInterval(updateFinaleSubmissions, 2000);
+        }
+
+        function updateFinaleTimer() {
+            const timer = document.getElementById('finale-timer');
+            const mins = Math.floor(state.timeLeft / 60);
+            const secs = state.timeLeft % 60;
+            timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateFinaleSubmissions() {
+            loadState();
+            const grid = document.getElementById('finale-grid');
+
+            if (!state.submissions || state.submissions.length === 0) {
+                grid.innerHTML = '<p style="color: var(--slate-400); text-align: center; grid-column: 1/-1; padding: 3rem;">Wachten op ideeen...</p>';
+                return;
+            }
+
+            grid.innerHTML = state.submissions
+                .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+                .map(s => `
+                    <div class="idea-card">
+                        <span class="team-tag team-${s.team}">${s.team === 'a' ? 'Blauw' : 'Paars'}</span>
+                        <h4>${escapeHtml(s.text)}</h4>
+                        <div class="votes">+${s.votes || 0}</div>
+                    </div>
+                `).join('');
+
+            document.getElementById('finale-score-a').textContent = state.teams.a.score;
+            document.getElementById('finale-score-b').textContent = state.teams.b.score;
+        }
+
+        // ================================================
+        // RESULTS
+        // ================================================
+        function showResults() {
+            showScreen('results');
+            clearInterval(state.timerInterval);
+
+            const a = state.teams.a.score;
+            const b = state.teams.b.score;
+
+            document.getElementById('final-score-a').textContent = a;
+            document.getElementById('final-score-b').textContent = b;
+
+            if (a > b) {
+                document.getElementById('winner-text').textContent = 'Team Blauw wint!';
+                document.getElementById('final-team-a').classList.add('winner');
+            } else if (b > a) {
+                document.getElementById('winner-text').textContent = 'Team Paars wint!';
+                document.getElementById('final-team-b').classList.add('winner');
+            } else {
+                document.getElementById('winner-text').textContent = 'Gelijkspel!';
+            }
+        }
+
+        // ================================================
+        // UTILS
+        // ================================================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextRound();
+            if (e.key === 'r') revealAnswer();
+        });
+
+        // ================================================
+        // INIT
+        // ================================================
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperautomation Workshop - Gemeente Meierijstad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #60a5fa;
+            --primary-dark: #1d4ed8;
+            --primary-50: #eff6ff;
+            --secondary: #10b981;
+            --secondary-light: #34d399;
+            --secondary-dark: #059669;
+            --secondary-50: #ecfdf5;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --divider: #e5e7eb;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: var(--slate-50);
+            color: var(--slate-800);
+            overflow: hidden;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .header {
+            background: var(--slate-800);
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .slide-indicator {
+            background: rgba(255,255,255,0.15);
+            padding: 0.5rem 1rem;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            padding: 2rem 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        /* Title slide */
+        .title-slide {
+            background: linear-gradient(135deg, var(--slate-800) 0%, var(--slate-700) 100%);
+            color: var(--white);
+        }
+
+        .title-slide .content {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .title-slide .subtitle {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .title-slide .tagline {
+            font-size: 1.125rem;
+            color: var(--slate-300);
+        }
+
+        .logo-accent {
+            color: var(--secondary);
+        }
+
+        /* Regular slides */
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            margin: 1.5rem 0 1rem;
+        }
+
+        p, li {
+            font-size: 1.125rem;
+            line-height: 1.75;
+            color: var(--slate-700);
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.9rem;
+            width: 8px;
+            height: 8px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+
+        /* Cards grid */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+
+        .card.success {
+            border-left-color: var(--secondary);
+        }
+
+        .card h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card p {
+            font-size: 1rem;
+            color: var(--slate-500);
+        }
+
+        .card .icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-50);
+            color: var(--primary);
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .card.success .icon {
+            background: var(--secondary-50);
+            color: var(--secondary);
+        }
+
+        /* Workflow visualization */
+        .workflow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .node {
+            background: var(--white);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+        }
+
+        .node.trigger {
+            border-color: var(--secondary);
+            background: var(--secondary-50);
+        }
+
+        .node.ai {
+            border-color: #9333ea;
+            background: #faf5ff;
+        }
+
+        .node.action {
+            border-color: var(--primary);
+            background: var(--primary-50);
+        }
+
+        .arrow {
+            font-size: 1.25rem;
+            color: var(--slate-400);
+        }
+
+        /* Quote block */
+        .quote {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .quote p {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--slate-700);
+        }
+
+        .quote .author {
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: var(--slate-500);
+            font-weight: 400;
+        }
+
+        /* Highlight box */
+        .highlight {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: var(--white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .highlight h3 {
+            color: var(--white);
+            margin-top: 0;
+        }
+
+        .highlight p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Two column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Tags */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .tag {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .tag.success {
+            background: var(--secondary);
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--divider);
+        }
+
+        .nav-btn {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .nav-btn.secondary {
+            background: transparent;
+            color: var(--slate-600);
+            border: 1px solid var(--divider);
+        }
+
+        .nav-btn.secondary:hover {
+            background: var(--slate-100);
+        }
+
+        .nav-btn.success {
+            background: var(--secondary);
+        }
+
+        .nav-btn.success:hover {
+            background: var(--secondary-dark);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Progress dots */
+        .progress {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .progress .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--slate-200);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .progress .dot.active {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .progress .dot:hover {
+            background: var(--primary-light);
+        }
+
+        /* QR section */
+        .qr-section {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: var(--white);
+            border: 2px dashed var(--slate-300);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem auto;
+            font-size: 0.875rem;
+            color: var(--slate-500);
+        }
+
+        .url-display {
+            background: var(--slate-800);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        /* Keyboard hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--slate-800);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .title-slide h1 { font-size: 2.5rem; }
+            h2 { font-size: 1.5rem; }
+            .content { padding: 1.5rem; }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+
+        <!-- SLIDE 0: Titel -->
+        <div class="slide title-slide active" data-slide="0">
+            <div class="content">
+                <h1>Hyperautomation</h1>
+                <p class="subtitle">AI Agents & Workflow Automation</p>
+                <p class="tagline">Laat de computer het repetitieve werk doen</p>
+                <br><br>
+                <p style="color: var(--slate-400);">Gemeente <span class="logo-accent">Meierijstad</span></p>
+            </div>
+        </div>
+
+        <!-- SLIDE 1: Het Probleem -->
+        <div class="slide" data-slide="1">
+            <div class="header">
+                <h1>Het Probleem</h1>
+                <span class="slide-indicator">1 / 9</span>
+            </div>
+            <div class="content">
+                <div class="quote">
+                    <p>"Ik besteed meer tijd aan het systeem dan aan de burger"</p>
+                    <p class="author">Herkenbaar?</p>
+                </div>
+
+                <div class="cards">
+                    <div class="card">
+                        <h4><span class="icon">C</span> Copy-paste werk</h4>
+                        <p>Gegevens overzetten tussen systemen, handmatig invoeren wat al ergens staat</p>
+                    </div>
+                    <div class="card">
+                        <h4><span class="icon">D</span> Dubbel werk</h4>
+                        <p>Dezelfde informatie in Topdesk, Djuma, Excel en nog een mail</p>
+                    </div>
+                    <div class="card">
+                        <h4><span class="icon">W</span> Wachten</h4>
+                        <p>Op goedkeuringen, op collega's, op systemen die niet met elkaar praten</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Wat is Hyperautomation -->
+        <div class="slide" data-slide="2">
+            <div class="header">
+                <h1>Wat is Hyperautomation?</h1>
+                <span class="slide-indicator">2 / 9</span>
+            </div>
+            <div class="content">
+                <div class="two-col">
+                    <div>
+                        <h3>De evolutie</h3>
+                        <ul>
+                            <li><strong>Automation:</strong> Eenvoudige taken automatiseren (macro's, scripts)</li>
+                            <li><strong>Workflow Automation:</strong> Systemen aan elkaar koppelen (n8n, Power Automate)</li>
+                            <li><strong>Hyperautomation:</strong> AI + automation = slimme beslissingen</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="highlight">
+                            <h3>Het grote verschil</h3>
+                            <p>Traditionele automation volgt regels.</p>
+                            <p style="margin-top: 0.5rem;"><strong>Hyperautomation denkt mee.</strong></p>
+                            <p style="margin-top: 0.5rem;">AI leest, begrijpt, classificeert en handelt - ook bij ongestructureerde input.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: AI Agents -->
+        <div class="slide" data-slide="3">
+            <div class="header">
+                <h1>AI Agents: Digitale Collega's</h1>
+                <span class="slide-indicator">3 / 9</span>
+            </div>
+            <div class="content">
+                <p style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem;">
+                    Een AI Agent is software die <strong>zelfstandig taken uitvoert</strong> namens jou.
+                </p>
+
+                <div class="cards">
+                    <div class="card success">
+                        <h4><span class="icon">I</span> Intake Agent</h4>
+                        <p>Leest binnenkomende mails, classificeert ze, en routeert naar de juiste afdeling</p>
+                        <div class="tags">
+                            <span class="tag success">Leest</span>
+                            <span class="tag success">Begrijpt</span>
+                            <span class="tag success">Handelt</span>
+                        </div>
+                    </div>
+                    <div class="card success">
+                        <h4><span class="icon">R</span> Research Agent</h4>
+                        <p>Zoekt informatie uit meerdere bronnen en vat samen in een overzicht</p>
+                        <div class="tags">
+                            <span class="tag success">BAG</span>
+                            <span class="tag success">Kadaster</span>
+                            <span class="tag success">CBS</span>
+                        </div>
+                    </div>
+                    <div class="card success">
+                        <h4><span class="icon">D</span> Document Agent</h4>
+                        <p>Genereert concept-brieven, rapporten of samenvattingen op basis van data</p>
+                        <div class="tags">
+                            <span class="tag success">Templates</span>
+                            <span class="tag success">Personalisatie</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: n8n Introductie -->
+        <div class="slide" data-slide="4">
+            <div class="header">
+                <h1>n8n: Ons Platform</h1>
+                <span class="slide-indicator">4 / 9</span>
+            </div>
+            <div class="content">
+                <div class="two-col">
+                    <div>
+                        <h3>Waarom n8n?</h3>
+                        <ul>
+                            <li><strong>Visueel:</strong> Blokjes slepen, verbinden, klaar</li>
+                            <li><strong>Open source:</strong> Draait op onze eigen server</li>
+                            <li><strong>400+ integraties:</strong> Van Outlook tot Kadaster API</li>
+                            <li><strong>AI-ready:</strong> Directe koppeling met ChatGPT, Claude</li>
+                            <li><strong>Geen vendor lock-in:</strong> Jouw data, jouw controle</li>
+                        </ul>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="background: var(--white); padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);">
+                            <p style="font-size: 0.875rem; color: var(--slate-500); margin-bottom: 1rem;">Zo ziet een workflow eruit:</p>
+                            <div class="workflow" style="flex-direction: column; gap: 0.5rem;">
+                                <div class="node trigger">Mail binnenkomst</div>
+                                <span class="arrow">|</span>
+                                <div class="node ai">AI: Classificeer</div>
+                                <span class="arrow">|</span>
+                                <div class="node action">Topdesk: Maak ticket</div>
+                                <span class="arrow">|</span>
+                                <div class="node action">Teams: Notificatie</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Voorbeeld 1 -->
+        <div class="slide" data-slide="5">
+            <div class="header">
+                <h1>Voorbeeld 1: Slimme Topdesk Intake</h1>
+                <span class="slide-indicator">5 / 9</span>
+            </div>
+            <div class="content">
+                <div class="two-col">
+                    <div>
+                        <h3>De situatie</h3>
+                        <p>Meldingen komen binnen via mail, formulier, of telefoon. Iemand moet handmatig:</p>
+                        <ul>
+                            <li>De melding lezen en begrijpen</li>
+                            <li>Categorie bepalen</li>
+                            <li>Prioriteit inschatten</li>
+                            <li>Toewijzen aan juiste team</li>
+                        </ul>
+
+                        <h3>De oplossing</h3>
+                        <div class="workflow">
+                            <div class="node trigger">Webhook</div>
+                            <span class="arrow">-></span>
+                            <div class="node ai">GPT Analyse</div>
+                            <span class="arrow">-></span>
+                            <div class="node action">Topdesk API</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card success">
+                            <h4>Resultaat</h4>
+                            <p><strong>AI leest de melding en bepaalt:</strong></p>
+                            <ul style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                <li>Categorie: "Openbare ruimte > Groen"</li>
+                                <li>Prioriteit: P3 (standaard)</li>
+                                <li>Team: Buitendienst Veghel</li>
+                                <li>Samenvatting: "Overhangende tak bij speeltuin"</li>
+                            </ul>
+                            <p style="margin-top: 1rem;"><strong>Bonus:</strong> P1/P2? Direct Teams-alert!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Voorbeeld 2 -->
+        <div class="slide" data-slide="6">
+            <div class="header">
+                <h1>Voorbeeld 2: Automatische Adresverrijking</h1>
+                <span class="slide-indicator">6 / 9</span>
+            </div>
+            <div class="content">
+                <div class="two-col">
+                    <div>
+                        <h3>De situatie</h3>
+                        <p>Bij een nieuwe zaak/aanvraag moet je handmatig:</p>
+                        <ul>
+                            <li>Adres opzoeken in BAG</li>
+                            <li>Eigenaar checken in Kadaster</li>
+                            <li>Bestemmingsplan raadplegen</li>
+                            <li>Alles samenvoegen in dossier</li>
+                        </ul>
+
+                        <h3>De oplossing</h3>
+                        <div class="workflow">
+                            <div class="node trigger">Adres input</div>
+                            <span class="arrow">-></span>
+                            <div class="node action">BAG API</div>
+                            <span class="arrow">-></span>
+                            <div class="node action">Kadaster</div>
+                            <span class="arrow">-></span>
+                            <div class="node action">Document</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card success">
+                            <h4>Resultaat</h4>
+                            <p><strong>In 3 seconden een compleet dossier:</strong></p>
+                            <ul style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                <li>Officieel BAG-adres + coordinaten</li>
+                                <li>Bouwjaar, oppervlakte, bestemming</li>
+                                <li>Eigendomsgegevens</li>
+                                <li>Relevante vergunningshistorie</li>
+                            </ul>
+                            <p style="margin-top: 1rem;"><strong>Tijdsbesparing:</strong> 15 min -> 3 sec</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Voorbeeld 3 -->
+        <div class="slide" data-slide="7">
+            <div class="header">
+                <h1>Voorbeeld 3: Rapportage Robot</h1>
+                <span class="slide-indicator">7 / 9</span>
+            </div>
+            <div class="content">
+                <div class="two-col">
+                    <div>
+                        <h3>De situatie</h3>
+                        <p>Elke week/maand dezelfde rapportage:</p>
+                        <ul>
+                            <li>Data ophalen uit verschillende bronnen</li>
+                            <li>Excel bijwerken</li>
+                            <li>Grafieken maken</li>
+                            <li>Mail sturen naar management</li>
+                        </ul>
+
+                        <h3>De oplossing</h3>
+                        <div class="workflow">
+                            <div class="node trigger">Elke maandag 8:00</div>
+                            <span class="arrow">-></span>
+                            <div class="node action">Data ophalen</div>
+                            <span class="arrow">-></span>
+                            <div class="node ai">Analyseer</div>
+                            <span class="arrow">-></span>
+                            <div class="node action">Mail rapport</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card success">
+                            <h4>Resultaat</h4>
+                            <p><strong>Maandagochtend in je inbox:</strong></p>
+                            <ul style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                <li>Actuele cijfers uit alle bronnen</li>
+                                <li>Vergelijking met vorige periode</li>
+                                <li>AI-gegenereerde samenvatting</li>
+                                <li>Signalering van afwijkingen</li>
+                            </ul>
+                            <p style="margin-top: 1rem;"><strong>Extra:</strong> "Let op: 40% meer P1-meldingen in wijk X"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Wat kunnen we koppelen -->
+        <div class="slide" data-slide="8">
+            <div class="header">
+                <h1>Wat kunnen we koppelen?</h1>
+                <span class="slide-indicator">8 / 9</span>
+            </div>
+            <div class="content">
+                <div class="two-col">
+                    <div>
+                        <h3>Interne Systemen</h3>
+                        <div class="cards" style="grid-template-columns: 1fr;">
+                            <div class="card">
+                                <p><strong>Topdesk</strong> - Tickets, assets, wijzigingen</p>
+                            </div>
+                            <div class="card">
+                                <p><strong>Djuma</strong> - Zaken, documenten, workflows</p>
+                            </div>
+                            <div class="card">
+                                <p><strong>Microsoft 365</strong> - Outlook, Teams, SharePoint, Excel</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Externe Bronnen</h3>
+                        <div class="cards" style="grid-template-columns: 1fr;">
+                            <div class="card success">
+                                <p><strong>BAG / Kadaster / PDOK</strong> - Adres- en gebouwgegevens</p>
+                            </div>
+                            <div class="card success">
+                                <p><strong>DUO / CBS</strong> - Onderwijs- en statistiekdata</p>
+                            </div>
+                            <div class="card success">
+                                <p><strong>KVK</strong> - Bedrijfsgegevens</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight" style="margin-top: 1.5rem; text-align: center;">
+                    <h3>En met AI erbij...</h3>
+                    <p>Classificeren, samenvatten, vertalen, brieven schrijven, data analyseren, anomalieen detecteren</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Nu jullie! -->
+        <div class="slide" data-slide="9">
+            <div class="header">
+                <h1>Nu jullie!</h1>
+                <span class="slide-indicator">9 / 9</span>
+            </div>
+            <div class="content" style="text-align: center;">
+                <h2 style="margin-bottom: 0.75rem;">Waar liggen de kansen?</h2>
+                <p style="font-size: 1.125rem; margin-bottom: 1.5rem;">
+                    Welke taken kosten <strong>jou</strong> steeds weer tijd?<br>
+                    Wat zou je graag automatiseren?
+                </p>
+
+                <div class="qr-section">
+                    <div class="qr-placeholder" id="qr-code">
+                        [QR Code]<br>
+                        <small>Genereer via qr.io</small>
+                    </div>
+
+                    <p style="font-size: 1rem;">Of ga naar:</p>
+                    <div class="url-display" id="deelnemer-url">http://[IP]:8080/deelnemer.html</div>
+                </div>
+
+                <div class="cards" style="max-width: 700px; margin: 1.5rem auto;">
+                    <div class="card">
+                        <h4><span class="icon">1</span> Vul in</h4>
+                        <p>Beschrijf je irritatie of tijdverspilling</p>
+                    </div>
+                    <div class="card success">
+                        <h4><span class="icon">2</span> Krijg suggesties</h4>
+                        <p>Automatisch n8n-nodes die kunnen helpen</p>
+                    </div>
+                    <div class="card">
+                        <h4><span class="icon">3</span> Stem</h4>
+                        <p>Op de ideeen van collega's</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <button class="nav-btn secondary" id="prev-btn" onclick="prevSlide()">
+            Vorige
+        </button>
+        <div class="progress" id="progress"></div>
+        <button class="nav-btn" id="next-btn" onclick="nextSlide()">
+            Volgende
+        </button>
+    </div>
+
+    <div class="keyboard-hint">Gebruik pijltjestoetsen om te navigeren</div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressContainer = document.getElementById('progress');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Create progress dots
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => goToSlide(i);
+            progressContainer.appendChild(dot);
+        }
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+
+            const dots = progressContainer.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+
+            prevBtn.disabled = currentSlide === 0;
+
+            if (currentSlide === totalSlides - 1) {
+                nextBtn.innerHTML = 'Start Input';
+                nextBtn.className = 'nav-btn success';
+                nextBtn.onclick = () => window.open('deelnemer.html', '_blank');
+            } else {
+                nextBtn.innerHTML = 'Volgende';
+                nextBtn.className = 'nav-btn';
+                nextBtn.onclick = nextSlide;
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlide();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Hide keyboard hint after 5 seconds
+        setTimeout(() => {
+            document.querySelector('.keyboard-hint').style.opacity = '0';
+        }, 5000);
+
+        // Initialize
+        updateSlide();
+    </script>
+</body>
+</html>

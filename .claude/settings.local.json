@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developer.omgevingswet.overheid.nl)",
+      "WebFetch(domain:geoforum.nl)",
+      "WebFetch(domain:service.omgevingswet.overheid.nl)"
+    ]
+  }
+}

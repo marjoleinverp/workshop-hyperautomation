@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Hyperautomation - Meierijstad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Meierijstad Design System */
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --text: #1e293b;
+            --muted: #64748b;
+            /* Primary = Meierijstad Blauw */
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --primary-dark: #1d4ed8;
+            /* Secondary = Meierijstad Groen (actie) */
+            --green: #10b981;
+            --green-light: #ecfdf5;
+            --green-dark: #059669;
+            /* Level kleuren - allemaal Meierijstad */
+            --level1: #10b981;
+            --level1-light: #ecfdf5;
+            --level2: #3b82f6;
+            --level2-light: #eff6ff;
+            --level3: #1d4ed8;
+            --level3-light: #e0e7ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* Slide container */
+        .slide {
+            display: none;
+            min-height: 100vh;
+            padding: 2rem 3rem;
+        }
+        .slide.active { display: block; }
+
+        /* Badeend helper - rechtsonder */
+        .duck-helper {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+        .duck-svg-container {
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+            animation: duckFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+            transition: filter 0.3s, transform 0.3s;
+        }
+        .duck-svg-container:hover {
+            filter: drop-shadow(0 12px 30px rgba(255, 215, 0, 0.5));
+            animation: duckWiggle 0.5s ease-in-out infinite;
+        }
+        .duck-svg-container.quacking {
+            animation: duckQuack 0.3s ease-in-out;
+        }
+        .duck-svg-container.spinning {
+            animation: duckSpin 1s ease-in-out;
+        }
+        @keyframes duckSpin {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(180deg) scale(1.2); }
+            50% { transform: rotate(360deg) scale(1); }
+            75% { transform: rotate(540deg) scale(1.2); }
+            100% { transform: rotate(720deg) scale(1); }
+        }
+        /* Salto / backflip */
+        .duck-svg-container.flip {
+            animation: duckFlip 0.8s ease-in-out;
+        }
+        @keyframes duckFlip {
+            0% { transform: translateY(0) rotateX(0deg); }
+            50% { transform: translateY(-60px) rotateX(180deg); }
+            100% { transform: translateY(0) rotateX(360deg); }
+        }
+        /* Op z'n kop */
+        .duck-svg-container.headstand {
+            animation: duckHeadstand 2s ease-in-out;
+        }
+        @keyframes duckHeadstand {
+            0% { transform: rotate(0deg); }
+            20% { transform: rotate(180deg); }
+            80% { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Dansen */
+        .duck-svg-container.dance {
+            animation: duckDance 1.5s ease-in-out;
+        }
+        @keyframes duckDance {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            10% { transform: translateX(-15px) rotate(-10deg); }
+            20% { transform: translateX(15px) rotate(10deg); }
+            30% { transform: translateX(-15px) rotate(-10deg); }
+            40% { transform: translateX(15px) rotate(10deg); }
+            50% { transform: translateX(-10px) rotate(-5deg) scale(1.1); }
+            60% { transform: translateX(10px) rotate(5deg) scale(1.1); }
+            70% { transform: translateX(-5px) rotate(-3deg); }
+            80% { transform: translateX(5px) rotate(3deg); }
+            90% { transform: translateX(0) rotate(0deg); }
+        }
+        /* Bounce */
+        .duck-svg-container.bounce {
+            animation: duckBounce 0.6s ease-in-out;
+        }
+        @keyframes duckBounce {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(-30px); }
+            50% { transform: translateY(0); }
+            75% { transform: translateY(-15px); }
+        }
+        /* Shake (nee schudden) */
+        .duck-svg-container.shake {
+            animation: duckShake 0.5s ease-in-out;
+        }
+        @keyframes duckShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px) rotate(-5deg); }
+            40% { transform: translateX(10px) rotate(5deg); }
+            60% { transform: translateX(-10px) rotate(-5deg); }
+            80% { transform: translateX(10px) rotate(5deg); }
+        }
+        /* Wave (zwaaien) */
+        .duck-svg-container.wave {
+            animation: duckWave 1s ease-in-out;
+        }
+        @keyframes duckWave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-20deg); }
+            75% { transform: rotate(20deg); }
+        }
+        /* Grow big */
+        .duck-svg-container.grow {
+            animation: duckGrow 0.8s ease-in-out;
+        }
+        @keyframes duckGrow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.8); }
+        }
+        /* Dizzy */
+        .duck-svg-container.dizzy {
+            animation: duckDizzy 1.2s ease-in-out;
+        }
+        @keyframes duckDizzy {
+            0% { transform: rotate(0deg) translateX(0); }
+            25% { transform: rotate(15deg) translateX(10px); }
+            50% { transform: rotate(-15deg) translateX(-10px); }
+            75% { transform: rotate(10deg) translateX(5px); }
+            100% { transform: rotate(0deg) translateX(0); }
+        }
+        @keyframes duckFloat {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        @keyframes duckWiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        @keyframes duckQuack {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-10deg); }
+            50% { transform: scale(0.95) rotate(5deg); }
+            75% { transform: scale(1.05) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .duck-svg-container svg {
+            width: 100%;
+            height: 100%;
+        }
+        .duck-eye-left, .duck-eye-right {
+            animation: duckBlink 4s ease-in-out infinite;
+        }
+        .duck-eye-right {
+            animation-delay: 0.1s;
+        }
+        @keyframes duckBlink {
+            0%, 42%, 48%, 100% { transform: scaleY(1); }
+            45% { transform: scaleY(0.1); }
+        }
+        .duck-svg-container:hover .duck-eye-left {
+            animation: duckWink 1s ease-in-out infinite;
+        }
+        @keyframes duckWink {
+            0%, 30%, 50%, 100% { transform: scaleY(1); }
+            40% { transform: scaleY(0.1); }
+        }
+        .duck-bubble {
+            background: var(--card);
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
+            max-width: 260px;
+            text-align: left;
+        }
+        .duck-bubble::before {
+            content: '';
+            position: absolute;
+            right: 40px;
+            bottom: -10px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid #f59e0b;
+        }
+        .duck-bubble::after {
+            content: '';
+            position: absolute;
+            right: 42px;
+            bottom: -6px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid var(--card);
+        }
+        .duck-bubble strong {
+            display: block;
+            font-size: 0.7rem;
+            color: #f59e0b;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+        .duck-bubble p {
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Slide styles */
+        .slide-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 4rem);
+            text-align: center;
+        }
+
+        .slide-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .slide-subtitle {
+            font-size: 1.5rem;
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+
+        /* Level indicators */
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .level-1 { background: var(--level1-light); color: var(--level1); }
+        .level-2 { background: var(--level2-light); color: var(--level2); }
+        .level-3 { background: var(--level3-light); color: var(--level3); }
+
+        /* Formula box */
+        .formula {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+        }
+
+        /* Example cards grid */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+
+        .example-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .example-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .example-card .domain {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .example-card.level-1 .domain { color: var(--level1); }
+        .example-card.level-2 .domain { color: var(--level2); }
+        .example-card.level-3 .domain { color: var(--level3); }
+
+        .example-card .flow {
+            font-size: 0.95rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .flow .arrow { color: var(--green); margin: 0 0.25rem; }
+        .flow .human {
+            background: var(--green-light);
+            color: var(--green);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .flow .ai {
+            background: var(--level3-light);
+            color: var(--level3);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Nodes grid */
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .node-category {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .node-category h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .node-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .node-tag {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        /* Workshop prompt */
+        .workshop-box {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-light), var(--green-light));
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .workshop-box h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .workshop-box .question {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ============ SLIDE 0: TITEL ============ -->
+    <div class="slide active" data-slide="0">
+        <div class="slide-center">
+            <p style="color: var(--muted); margin-bottom: 1rem; font-size: 0.9rem;">i-Domein Dag · Workshop</p>
+            <h1 class="slide-title">van broodrooster<br>naar slimme chef</h1>
+            <p class="slide-subtitle">kennismaken met automation</p>
+            <p style="color: var(--muted); margin-top: 2rem;">Gemeente Meierijstad</p>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>kwak!</strong>
+                <p>Robots die je werk doen? Klinkt als een complot... maar dan eentje waar je blij van wordt.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 1: WAT GAAN WE DOEN ============ -->
+    <div class="slide" data-slide="1">
+        <div class="slide-center">
+            <h1 class="slide-title">Wat gaan we doen?</h1>
+            <div style="max-width: 600px; margin: 2rem auto; text-align: left;">
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 1rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">1</div>
+                    <div style="color: var(--text);">drie niveaus van automation leren kennen</div>
+                </div>
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 1rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">2</div>
+                    <div style="color: var(--text);">zien wat er mogelijk is met n8n</div>
+                </div>
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 1rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 1.5rem; color: var(--primary); font-weight: 700;">3</div>
+                    <div style="color: var(--text);">samen brainstormen over mogelijkheden</div>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>kwak!</strong>
+                <p>Ik ben de mascotte. Ik doe niks nuttigs, maar ik ben er wel altijd.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 2: DRIE NIVEAUS ============ -->
+    <div class="slide" data-slide="2">
+        <div class="slide-center">
+            <h1 class="slide-title">drie niveaus van automation</h1>
+            <div style="display: flex; gap: 2rem; margin-top: 3rem; justify-content: center;">
+                <div style="text-align: center; padding: 2rem; background: var(--level1-light); border-radius: 16px; width: 250px;">
+                    <div style="font-size: 1rem; color: var(--level1); font-weight: 600; margin-bottom: 0.5rem;">level 1</div>
+                    <div style="font-weight: 700; color: var(--level1); font-size: 1.25rem; margin: 0.5rem 0;">de broodrooster</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">simpele automation</div>
+                </div>
+                <div style="text-align: center; padding: 2rem; background: var(--level2-light); border-radius: 16px; width: 250px;">
+                    <div style="font-size: 1rem; color: var(--level2); font-weight: 600; margin-bottom: 0.5rem;">level 2</div>
+                    <div style="font-weight: 700; color: var(--level2); font-size: 1.25rem; margin: 0.5rem 0;">het recept</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">workflow automation</div>
+                </div>
+                <div style="text-align: center; padding: 2rem; background: var(--level3-light); border-radius: 16px; width: 250px;">
+                    <div style="font-size: 1rem; color: var(--level3); font-weight: 600; margin-bottom: 0.5rem;">level 3</div>
+                    <div style="font-weight: 700; color: var(--level3); font-size: 1.25rem; margin: 0.5rem 0;">de slimme chef</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">hyperautomation</div>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>spoiler</strong>
+                <p>Niveau 3 is waar het spannend wordt. Maar ssst, dat zeg ik niet hardop.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 3: BROODROOSTER INTRO ============ -->
+    <div class="slide" data-slide="3">
+        <div class="slide-center">
+            <span class="level-badge level-1">level 1</span>
+            <h1 class="slide-title" style="color: var(--level1);">de broodrooster</h1>
+            <p class="slide-subtitle">automation</p>
+            <div class="formula">een trigger → een actie. klaar.</div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>leuk weetje</strong>
+                <p>Wist je dat de eerste broodrooster in 1893 werd uitgevonden? Sindsdien maken mensen toast zonder na te denken. Precies het idee!</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 4: BROODROOSTER VOORBEELDEN ============ -->
+    <div class="slide" data-slide="4">
+        <div style="max-width: 1200px; margin: 0 auto; padding-top: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <span class="level-badge level-1">de broodrooster</span>
+                <h2 style="font-size: 1.75rem; margin-top: 0.5rem;">voorbeelden uit de praktijk</h2>
+            </div>
+            <div class="examples-grid">
+                <div class="example-card level-1">
+                    <div class="domain">klantcontact</div>
+                    <div class="flow">burger dient formulier in <span class="arrow">→</span> automatisch ontvangstbevestiging</div>
+                </div>
+                <div class="example-card level-1">
+                    <div class="domain">balie / receptie</div>
+                    <div class="flow">bezoeker meldt zich <span class="arrow">→</span> Teams-bericht naar medewerker</div>
+                </div>
+                <div class="example-card level-1">
+                    <div class="domain">openbare ruimte</div>
+                    <div class="flow">melding kapotte lantaarnpaal <span class="arrow">→</span> ticketnummer terug</div>
+                </div>
+                <div class="example-card level-1">
+                    <div class="domain">ICT</div>
+                    <div class="flow">klik 'wachtwoord vergeten' <span class="arrow">→</span> reset-link verstuurd</div>
+                </div>
+                <div class="example-card level-1">
+                    <div class="domain">financiën</div>
+                    <div class="flow">betaaltermijn verlopen <span class="arrow">→</span> herinnering verstuurd</div>
+                </div>
+                <div class="example-card level-1">
+                    <div class="domain">klantregistratie</div>
+                    <div class="flow">nieuwe klant aangemaakt <span class="arrow">→</span> taak op planbord</div>
+                </div>
+            </div>
+                    </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>eerlijk zijn</strong>
+                <p>Hoeveel van deze taken doe jij dagelijks terwijl je denkt: "dit kan toch ook automatisch?"</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 5: RECEPT INTRO ============ -->
+    <div class="slide" data-slide="5">
+        <div class="slide-center">
+            <span class="level-badge level-2">level 2</span>
+            <h1 class="slide-title" style="color: var(--level2);">het recept</h1>
+            <p class="slide-subtitle">workflow automation</p>
+            <div class="formula">meerdere stappen · <span class="human">mens</span> beslist op cruciale momenten</div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>chef's kiss</strong>
+                <p>Het systeem bereidt alles voor, jij hoeft alleen nog te proeven. Net als bij m'n favoriete restaurant... de vijver.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 6: RECEPT VOORBEELDEN ============ -->
+    <div class="slide" data-slide="6">
+        <div style="max-width: 1200px; margin: 0 auto; padding-top: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <span class="level-badge level-2">het recept</span>
+                <h2 style="font-size: 1.75rem; margin-top: 0.5rem;">voorbeelden uit de praktijk</h2>
+            </div>
+            <div class="examples-grid" style="grid-template-columns: 1fr;">
+                <div class="example-card level-2">
+                    <div class="domain">vergunningen</div>
+                    <div class="flow">aanvraag binnen <span class="arrow">→</span> volledigheidscheck <span class="arrow">→</span> toewijzing behandelaar <span class="arrow">→</span> termijnbewaking <span class="arrow">→</span> <span class="human">mens beoordeelt</span> <span class="arrow">→</span> beschikking genereren <span class="arrow">→</span> archivering</div>
+                </div>
+                <div class="example-card level-2">
+                    <div class="domain">sociaal domein</div>
+                    <div class="flow">WMO-melding <span class="arrow">→</span> intake registreren <span class="arrow">→</span> keukentafelgesprek inplannen <span class="arrow">→</span> <span class="human">mens voert gesprek</span> <span class="arrow">→</span> beschikking opstellen <span class="arrow">→</span> evaluatiemoment</div>
+                </div>
+                <div class="example-card level-2">
+                    <div class="domain">KCC</div>
+                    <div class="flow">klacht binnen <span class="arrow">→</span> categoriseren <span class="arrow">→</span> routeren naar team <span class="arrow">→</span> <span class="human">mens behandelt</span> <span class="arrow">→</span> terugkoppeling burger <span class="arrow">→</span> tevredenheidsmeting</div>
+                </div>
+                <div class="example-card level-2">
+                    <div class="domain">HR</div>
+                    <div class="flow">nieuwe medewerker <span class="arrow">→</span> accounts aanmaken <span class="arrow">→</span> laptop bestellen <span class="arrow">→</span> inwerkschema <span class="arrow">→</span> welkomstmail <span class="arrow">→</span> <span class="human">leidinggevende checkt</span></div>
+                </div>
+                <div class="example-card level-2">
+                    <div class="domain">financiën</div>
+                    <div class="flow">factuur binnen <span class="arrow">→</span> data uitlezen <span class="arrow">→</span> match inkooporder <span class="arrow">→</span> <span class="human">budgethouder keurt goed</span> <span class="arrow">→</span> boeking</div>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>herkenbaar?</strong>
+                <p>Dit zijn geen fantasie-voorbeelden. Dit gebeurt echt. Nou ja, meestal. Soms. Oké, het kán.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 7: CHEF INTRO ============ -->
+    <div class="slide" data-slide="7">
+        <div class="slide-center">
+            <span class="level-badge level-3">level 3</span>
+            <h1 class="slide-title" style="color: var(--level3);">de slimme chef</h1>
+            <p class="slide-subtitle">hyperautomation</p>
+            <div class="formula"><span class="ai">AI</span> denkt mee, leert en signaleert · <span class="human">mens</span> bewaakt en beslist</div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>geen paniek</strong>
+                <p>De AI neemt je baan niet over. Maar degene die weet hoe je AI gebruikt... die misschien wel. Kwak!</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 8: CHEF VOORBEELDEN ============ -->
+    <div class="slide" data-slide="8">
+        <div style="max-width: 1200px; margin: 0 auto; padding-top: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <span class="level-badge level-3">de slimme chef</span>
+                <h2 style="font-size: 1.75rem; margin-top: 0.5rem;">voorbeelden uit de praktijk</h2>
+            </div>
+            <div class="examples-grid" style="grid-template-columns: 1fr;">
+                <div class="example-card level-3">
+                    <div class="domain">KCC</div>
+                    <div class="flow">telefoongesprek <span class="arrow">→</span> spraakherkenning <span class="arrow">→</span> <span class="ai">AI begrijpt vraag + stelt antwoord op</span> <span class="arrow">→</span> <span class="human">mens controleert</span> <span class="arrow">→</span> verstuurt <span class="arrow">→</span> systeem leert van correcties</div>
+                </div>
+                <div class="example-card level-3">
+                    <div class="domain">sociaal domein</div>
+                    <div class="flow"><span class="ai">AI combineert data bronnen</span> <span class="arrow">→</span> <span class="ai">signaleert risico schulden</span> <span class="arrow">→</span> <span class="human">mens beoordeelt signaal</span> <span class="arrow">→</span> gepersonaliseerde brief <span class="arrow">→</span> opvolging</div>
+                </div>
+                <div class="example-card level-3">
+                    <div class="domain">vergunningen</div>
+                    <div class="flow"><span class="ai">AI leest aanvraag + tekeningen</span> <span class="arrow">→</span> <span class="ai">toetst aan bestemmingsplan</span> <span class="arrow">→</span> risicoscore <span class="arrow">→</span> <span class="human">mens checkt steekproefsgewijs</span></div>
+                </div>
+                <div class="example-card level-3">
+                    <div class="domain">bestuur</div>
+                    <div class="flow">vergadering opnemen <span class="arrow">→</span> transcriptie <span class="arrow">→</span> <span class="ai">AI maakt samenvatting + actiepunten</span> <span class="arrow">→</span> <span class="human">mens controleert</span> <span class="arrow">→</span> taken toegewezen</div>
+                </div>
+                <div class="example-card level-3">
+                    <div class="domain">bedrijfsvoering</div>
+                    <div class="flow"><span class="ai">AI analyseert doorlooptijden</span> <span class="arrow">→</span> <span class="ai">vindt knelpunten</span> <span class="arrow">→</span> <span class="ai">stelt verbeteringen voor</span> <span class="arrow">→</span> <span class="human">mens beslist</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>de toekomst</strong>
+                <p>Klinkt als sciencefiction? Nope. Dit kan nu al. Welkom in 2026. Ik voel me oud.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 9: N8N INTRO ============ -->
+    <div class="slide" data-slide="9">
+        <div class="slide-center">
+            <h1 class="slide-title">Hoe bouwen we dit?</h1>
+            <p class="slide-subtitle">met n8n</p>
+            <div style="max-width: 600px; margin: 2rem auto; text-align: left;">
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 0.75rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 700;">1</div>
+                    <span>visueel workflows bouwen door blokken te verbinden</span>
+                </div>
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 0.75rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 700;">2</div>
+                    <span>400+ kant-en-klare koppelingen</span>
+                </div>
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 0.75rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 700;">3</div>
+                    <span>draait bij ons, data blijft bij ons</span>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>wow factor</strong>
+                <p>Blokjes slepen en dingen gebeuren vanzelf. Hoe cool is dat? Ik kan alleen maar drijven.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 10: N8N NODES ============ -->
+    <div class="slide" data-slide="10">
+        <div style="max-width: 1300px; margin: 0 auto; padding-top: 1rem;">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.75rem;">Wat kan n8n? de bouwblokken</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; align-items: start;">
+                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <img src="Schermafbeelding 2026-02-06 112848.png" alt="n8n node categorieën" style="width: 100%; border-radius: 8px;">
+                </div>
+                <div class="nodes-grid">
+                    <div class="node-category">
+                        <h4>triggers</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">webhook</span>
+                            <span class="node-tag">schedule</span>
+                            <span class="node-tag">email trigger</span>
+                            <span class="node-tag">form submit</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>communicatie</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">email</span>
+                            <span class="node-tag">MS Teams</span>
+                            <span class="node-tag">Outlook</span>
+                            <span class="node-tag">SMS</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>Microsoft 365</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">SharePoint</span>
+                            <span class="node-tag">OneDrive</span>
+                            <span class="node-tag">Excel</span>
+                            <span class="node-tag">Planner</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>databases</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">SQL Server</span>
+                            <span class="node-tag">PostgreSQL</span>
+                            <span class="node-tag">Airtable</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>AI</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">OpenAI</span>
+                            <span class="node-tag">Claude</span>
+                            <span class="node-tag">Azure AI</span>
+                            <span class="node-tag">classifier</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>documenten</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">PDF maken</span>
+                            <span class="node-tag">PDF lezen</span>
+                            <span class="node-tag">Excel</span>
+                            <span class="node-tag">XML/JSON</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>logica</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">IF/switch</span>
+                            <span class="node-tag">filter</span>
+                            <span class="node-tag">loop</span>
+                            <span class="node-tag">merge</span>
+                        </div>
+                    </div>
+                    <div class="node-category">
+                        <h4>overheid specifiek</h4>
+                        <div class="node-tags">
+                            <span class="node-tag">Topdesk API</span>
+                            <span class="node-tag">zaaksysteem</span>
+                            <span class="node-tag">BAG</span>
+                            <span class="node-tag">BRP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>keuze stress</strong>
+                <p>AI, Apps, Data, Flow, Code, Human in the loop... En ik maar denken dat kiezen tussen brood en crackers moeilijk was.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 11: VOORBEELD P&O EMAIL ============ -->
+    <div class="slide" data-slide="11">
+        <div class="screenshot-slide">
+            <h2>voorbeeld: P&O email afhandeling</h2>
+            <p class="subtitle">
+                <span class="flow-label level-3">slimme chef</span>
+                AI categoriseert vragen, zoekt in kennisbank, genereert antwoord, mens keurt goed
+            </p>
+            <div class="screenshot-container">
+                <img src="Schermafbeelding 2026-02-06 112820.png" alt="P&O Email workflow">
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>echte magie</strong>
+                <p>Mail binnen, AI denkt na, mens zegt "jup" of "nope", klaar. En ik dacht dat IK efficiënt was met zwemmen.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 12: VOORBEELD SUITE4 AANVRAAG ============ -->
+    <div class="slide" data-slide="12">
+        <div class="screenshot-slide">
+            <h2>voorbeeld: Suite4 uitkeringsaanvraag</h2>
+            <p class="subtitle">
+                <span class="flow-label level-3">slimme chef</span>
+                BRP + Suwinet ophalen → AI toetst beleidsregels → AI genereert beschikking → Djuma + Suite4
+            </p>
+            <div class="screenshot-container">
+                <img src="Schermafbeelding 2026-02-06 112945.png" alt="Suite4 Aanvraag workflow">
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>heilige kwak</strong>
+                <p>Dit is één workflow. BRP, Suwinet, AI, Djuma, Suite4... Ik krijg al hoofdpijn van m'n badeend-hersenen.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 13: VOORBEELD HR ONBOARDING ============ -->
+    <div class="slide" data-slide="13">
+        <div class="screenshot-slide">
+            <h2>voorbeeld: HR onboarding flows</h2>
+            <p class="subtitle">
+                <span class="flow-label level-2">recept</span>
+                i-uitrusting → Freshservice
+                <span class="flow-label level-3">slimme chef</span>
+                AI welkomstmail
+                <span class="flow-label level-2">recept</span>
+                VOG aanvragen
+            </p>
+            <div class="screenshot-container">
+                <img src="Schermafbeelding 2026-02-06 113016.png" alt="HR Onboarding workflows">
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>nieuwe collega's</strong>
+                <p>Laptop besteld, welkomstmail verstuurd, VOG aangevraagd. Allemaal automatisch. De nieuwe medewerker denkt: "wow, goed geregeld hier!"</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 14: BRAINSTORM ============ -->
+    <div class="slide" data-slide="14">
+        <div class="slide-center">
+            <div class="workshop-box">
+                <h3>jouw beurt!</h3>
+                <p style="color: var(--muted);">Je weet nu wat de drie niveaus van automation zijn.</p>
+                <div class="question">Wat zou je binnen Meierijstad<br>willen automatiseren?</div>
+            </div>
+            <div style="margin-top: 2rem; background: white; border: 2px solid var(--primary); border-radius: 16px; padding: 1.5rem 2rem; display: inline-block;">
+                <div style="font-size: 1.1rem; color: var(--text); margin-bottom: 0.5rem;">dien je idee in via:</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">speler.html</div>
+                <div style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;">of scan de QR code</div>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                <div style="background: var(--level1-light); padding: 0.75rem 1.25rem; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 0.85rem; color: var(--level1); font-weight: 600;">broodrooster</div>
+                </div>
+                <div style="background: var(--level2-light); padding: 0.75rem 1.25rem; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 0.85rem; color: var(--level2); font-weight: 600;">recept</div>
+                </div>
+                <div style="background: var(--level3-light); padding: 0.75rem 1.25rem; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 0.85rem; color: var(--level3); font-weight: 600;">slimme chef</div>
+                </div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>nu jij!</strong>
+                <p>Geen idee te gek! Behalve "een eend die kan typen". Dat bestaat al. Ik ben het bewijs.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- ============ SLIDE 15: INGEDIENDE IDEEËN ============ -->
+    <div class="slide" data-slide="15">
+        <div style="max-width: 1100px; margin: 0 auto; padding-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">ingediende ideeën <span id="ideas-count" style="background: var(--primary-light); color: var(--primary); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 1rem; margin-left: 0.5rem;">0</span></h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="refreshIdeas()" style="padding: 0.5rem 1rem; background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600;">vernieuwen</button>
+                    <button onclick="clearAllIdeas()" style="padding: 0.5rem 1rem; background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600;">wissen</button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <span style="color: var(--muted); font-size: 0.85rem; padding: 0.4rem 0; min-width: 120px;">nieuwe ideeën in:</span>
+                <button class="active-group-btn active" data-active="none" onclick="setActiveGroup('none')">geen groep</button>
+                <button class="active-group-btn" data-active="groep1" onclick="setActiveGroup('groep1')">groep 1</button>
+                <button class="active-group-btn" data-active="groep2" onclick="setActiveGroup('groep2')">groep 2</button>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center;">
+                <span style="color: var(--muted); font-size: 0.85rem; padding: 0.4rem 0; min-width: 120px;">filter weergave:</span>
+                <button class="group-filter-btn active" data-group="all" onclick="filterGroup('all')">alle</button>
+                <button class="group-filter-btn" data-group="none" onclick="filterGroup('none')">ongesorteerd</button>
+                <button class="group-filter-btn" data-group="groep1" onclick="filterGroup('groep1')">groep 1</button>
+                <button class="group-filter-btn" data-group="groep2" onclick="filterGroup('groep2')">groep 2</button>
+                <button class="group-filter-btn" data-group="later" onclick="filterGroup('later')">na i-domein dag</button>
+            </div>
+            <div id="ideas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+                <div style="text-align: center; padding: 3rem; color: var(--muted);">nog geen ideeën ingediend...</div>
+            </div>
+        </div>
+        <div class="duck-helper">
+            <div class="duck-bubble">
+                <strong>teamwork</strong>
+                <p>Goede ideeën worden beter met meer hersens. En ik heb er maar eentje. Een hele kleine.</p>
+            </div>
+            <div class="duck-svg-container" onclick="quackDuck(event)"></div>
+        </div>
+    </div>
+
+    <!-- Modal voor idee aanvullen -->
+    <div id="idea-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div id="modal-level" class="modal-level"></div>
+            <h3 id="modal-idea" class="modal-idea"></h3>
+
+            <div class="modal-field">
+                <label>hoe zou je dit aanpakken? <span style="font-weight: 400; color: var(--muted);">(stap voor stap)</span></label>
+                <div id="steps-container"></div>
+                <button type="button" onclick="addStep()" class="add-step-btn">+ stap toevoegen</button>
+            </div>
+
+            <div class="modal-field">
+                <label>uitgebreide omschrijving <span style="font-weight: 400; color: var(--muted);">(risico's, privacy, afhankelijkheden...)</span></label>
+                <textarea id="modal-notes" rows="3" placeholder="bijv. let op: bevat persoonsgegevens, heeft toegang tot X nodig, risico bij storing..."></textarea>
+            </div>
+
+            <button class="modal-save" onclick="saveSuggestion()">opslaan</button>
+
+            <div id="modal-existing" class="modal-existing">
+                <h4>eerdere suggesties:</h4>
+                <div id="modal-suggestions-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Idea cards in demo */
+        .idea-card-demo {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .idea-card-demo:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .idea-card-demo .level-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .idea-card-demo .level-tag.level-1 { background: var(--level1-light); color: var(--level1); }
+        .idea-card-demo .level-tag.level-2 { background: var(--level2-light); color: var(--level2); }
+        .idea-card-demo .level-tag.level-3 { background: var(--level3-light); color: var(--level3); }
+        .idea-card-demo .idea-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+        .idea-card-demo .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .idea-card-demo .votes { color: var(--green); font-weight: 600; }
+        .idea-card-demo .has-suggestion { color: var(--primary); font-weight: 500; }
+
+        /* Star rating */
+        .star-rating {
+            display: inline-flex;
+            gap: 0.15rem;
+            margin-bottom: 0.5rem;
+        }
+        .star-rating .star {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            transition: all 0.1s;
+            position: relative;
+        }
+        .star-rating .star::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #d1d5db;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            transition: background 0.1s;
+        }
+        .star-rating .star.filled::before {
+            background: #f59e0b;
+        }
+        .star-rating .star:hover::before {
+            background: #fbbf24;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--muted);
+        }
+        .modal-level {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .modal-level.level-1 { background: var(--level1-light); color: var(--level1); }
+        .modal-level.level-2 { background: var(--level2-light); color: var(--level2); }
+        .modal-level.level-3 { background: var(--level3-light); color: var(--level3); }
+        .modal-idea {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+        .modal-field { margin-bottom: 1.25rem; }
+        .modal-field label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        .modal-field textarea, .modal-field input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .modal-field textarea {
+            resize: none;
+            min-height: 100px;
+        }
+        .modal-field textarea:focus, .modal-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .modal-save {
+            width: 100%;
+            padding: 1rem;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .modal-save:hover { background: #059669; }
+        .modal-existing {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+        .modal-existing.has-items { display: block; }
+        .modal-existing h4 {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+        }
+        .suggestion-item {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .suggestion-item .notes {
+            margin-top: 0.5rem;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        .suggestion-item .nodes {
+            margin-top: 0.5rem;
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .modal-field textarea {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-field textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .suggestion-item .steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .suggestion-item .steps li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .suggestion-item .steps li::before {
+            content: '→';
+            color: var(--green);
+            flex-shrink: 0;
+        }
+
+        /* Step inputs */
+        .step-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .step-row .step-number {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .step-row input {
+            flex: 1;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        .step-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .step-row .remove-step {
+            width: 28px;
+            height: 28px;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step-row .remove-step:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        .add-step-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: var(--primary-light);
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .add-step-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-style: solid;
+        }
+
+        /* Group filter buttons */
+        .group-filter-btn {
+            padding: 0.4rem 0.75rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+        .group-filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .group-filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Group selector in idea card */
+        .group-selector {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+        .group-btn {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+        .group-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .group-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .group-btn.later.active {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #d97706;
+        }
+
+        /* Active group buttons */
+        .active-group-btn {
+            padding: 0.4rem 0.75rem;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+        .active-group-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+        .active-group-btn.active {
+            background: var(--green-light);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* Screenshot slides */
+        .screenshot-slide {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .screenshot-slide h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .screenshot-slide .subtitle {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .screenshot-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .screenshot-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        .flow-label {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .flow-label.level-2 {
+            background: var(--level2-light);
+            color: var(--level2);
+        }
+        .flow-label.level-3 {
+            background: var(--level3-light);
+            color: var(--level3);
+        }
+    </style>
+
+    <script>
+        const STORAGE_KEY = 'meierijstad_brainstorm';
+        const slides = document.querySelectorAll('.slide');
+        let current = 0;
+        let currentIdeaId = null;
+        let currentGroupFilter = 'all';
+
+        // SVG Duck template (met inline kleuren)
+        const duckSVG = `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="150" cy="275" rx="105" ry="14" fill="rgba(0,0,0,0.1)"/>
+            <ellipse cx="150" cy="205" rx="100" ry="65" fill="#FFD700"/>
+            <ellipse cx="150" cy="215" rx="55" ry="35" fill="rgba(255,255,255,0.15)"/>
+            <path d="M 245 185 Q 275 155 265 135 Q 258 148 248 152 Q 265 135 255 115 Q 250 132 242 142 Q 248 122 243 112 Q 238 128 233 142 L 240 178" fill="#E6A800"/>
+            <ellipse cx="150" cy="155" rx="45" ry="38" fill="#FFD700"/>
+            <circle cx="150" cy="100" r="55" fill="#FFDD44"/>
+            <ellipse cx="112" cy="118" rx="11" ry="7" fill="rgba(255,150,100,0.25)"/>
+            <ellipse cx="188" cy="118" rx="11" ry="7" fill="rgba(255,150,100,0.2)"/>
+            <ellipse cx="125" cy="92" rx="13" ry="14" fill="white"/>
+            <g class="duck-eye-left" style="transform-origin: 125px 92px;">
+                <circle cx="127" cy="92" r="7.5" fill="#222"/>
+                <circle cx="130" cy="89" r="2.8" fill="white"/>
+            </g>
+            <ellipse cx="172" cy="92" rx="13" ry="14" fill="white"/>
+            <g class="duck-eye-right" style="transform-origin: 172px 92px;">
+                <circle cx="170" cy="92" r="7.5" fill="#222"/>
+                <circle cx="173" cy="89" r="2.8" fill="white"/>
+            </g>
+            <path d="M 130 108 Q 128 100 150 96 Q 172 100 170 108 Q 165 118 150 120 Q 135 118 130 108 Z" fill="#FF8C00"/>
+            <path d="M 135 110 Q 150 114 165 110" fill="none" stroke="rgba(180,80,0,0.35)" stroke-width="1.2"/>
+            <path d="M 145 47 Q 140 30 152 25 Q 145 38 154 38 Q 148 30 158 22 Q 150 38 158 44 Q 155 40 160 34 Q 155 45 150 48" fill="#FFD700" opacity="0.8"/>
+        </svg>`;
+
+        // Clone duck SVG to all containers
+        document.querySelectorAll('.duck-svg-container').forEach(container => {
+            if (!container.querySelector('svg')) {
+                container.innerHTML = duckSVG;
+            }
+        });
+
+        // Duck tricks with messages
+        const duckTricks = [
+            { anim: 'quacking', duration: 300, msg: null }, // null = use random joke
+            { anim: 'quacking', duration: 300, msg: null },
+            { anim: 'quacking', duration: 300, msg: null },
+            { anim: 'flip', duration: 800, msg: "SALTO! 🤸 Ik train hier al jaren voor." },
+            { anim: 'headstand', duration: 2000, msg: "Op m'n kop! Het bloed stroomt naar m'n... eh... snavel?" },
+            { anim: 'dance', duration: 1500, msg: "💃 Dansen! Dit is mijn signature move: de kwakwalk." },
+            { anim: 'bounce', duration: 600, msg: "Boing boing! Rubber eenden stuiteren goed." },
+            { anim: 'shake', duration: 500, msg: "Nee nee nee! Dat was geen goede grap." },
+            { anim: 'wave', duration: 1000, msg: "👋 Hallo! Ik zwaai even. Heel normaal." },
+            { anim: 'grow', duration: 800, msg: "GROOT WORDEN! Oh wacht, ik ben weer klein." },
+            { anim: 'dizzy', duration: 1200, msg: "Whoaa... duizelig... te veel gekwaakt..." },
+            { anim: 'spinning', duration: 1000, msg: "WHEEE! Draaien draaien draaien!" },
+        ];
+
+        // Duck jokes for regular quacks
+        const duckJokes = [
+            "Waarom ging de eend naar de dokter? Omdat hij zich kwakkig voelde!",
+            "Wat zegt een eend als hij iets koopt? Zet het maar op mijn bek!",
+            "Ik ben geen IT-expert, maar ik weet wel veel van web-voeten.",
+            "Mijn hobby's? Drijven, kwaken, en naar mensen staren.",
+            "Fun fact: eenden hebben geen echo. Niemand weet waarom. Ik ook niet.",
+            "Automation is als zwemmen. Het ziet er makkelijk uit tot je het probeert.",
+            "Ik ben de enige hier die écht weet wat 'fowl play' betekent.",
+            "Klik nog een keer. Misschien doe ik een trucje!",
+            "Wist je dat ik 24/7 werk? Ik ben letterlijk een rubber eend.",
+            "Break time! Oh wacht, ik ben een eend. Ik heb altijd pauze.",
+            "Elke keer als je klikt, krijgt een developer vleugels. Niet echt.",
+            "Ik zou een grap over workflows maken, maar die loopt nog.",
+            "Error 404: Grap niet gevonden. Grapje! Hier ben ik!",
+            "Als dit een race was, zou automation winnen. Ik zou tweede worden.",
+            "Pro tip: blijf klikken voor speciale bewegingen!",
+            "Soms doe ik salto's. Soms sta ik op m'n kop. Je weet het nooit.",
+            "Ik heb meer moves dan een workflow nodes heeft.",
+            "Klik klik klik! Ik word er blij van. Simpele eend, simpele wensen.",
+        ];
+
+        let duckClickCount = 0;
+        let lastClickTime = 0;
+
+        // All animation classes for cleanup
+        const allAnims = ['quacking', 'flip', 'headstand', 'dance', 'bounce', 'shake', 'wave', 'grow', 'dizzy', 'spinning'];
+
+        // Quack when clicking duck
+        function quackDuck(e) {
+            e.stopPropagation();
+            const container = e.currentTarget;
+            const bubble = container.closest('.duck-helper')?.querySelector('.duck-bubble');
+            const now = Date.now();
+
+            duckClickCount++;
+
+            // Clear any existing animations
+            allAnims.forEach(a => container.classList.remove(a));
+
+            // Double-click detection for guaranteed trick
+            if (now - lastClickTime < 300) {
+                const specialTricks = duckTricks.filter(t => t.anim !== 'quacking');
+                const trick = specialTricks[Math.floor(Math.random() * specialTricks.length)];
+
+                container.classList.add(trick.anim);
+                setTimeout(() => container.classList.remove(trick.anim), trick.duration);
+
+                if (bubble) {
+                    bubble.querySelector('strong').textContent = 'COMBO!';
+                    bubble.querySelector('p').textContent = trick.msg + ' (klik #' + duckClickCount + ')';
+                }
+            } else {
+                // Normal click - random trick (weighted towards quacking)
+                const trick = duckTricks[Math.floor(Math.random() * duckTricks.length)];
+
+                container.classList.add(trick.anim);
+                setTimeout(() => container.classList.remove(trick.anim), trick.duration);
+
+                // Show message
+                if (bubble) {
+                    const msg = trick.msg || duckJokes[Math.floor(Math.random() * duckJokes.length)];
+                    bubble.querySelector('strong').textContent = 'kwak #' + duckClickCount;
+                    bubble.querySelector('p').textContent = msg;
+                }
+
+                // Milestone animations
+                if (duckClickCount === 10) {
+                    spawnConfetti(container);
+                    if (bubble) bubble.querySelector('p').textContent = '🎉 10 klikken! Je bent officieel eend-verslaafd!';
+                } else if (duckClickCount === 25) {
+                    spawnConfetti(container);
+                    if (bubble) bubble.querySelector('p').textContent = '🏆 25 klikken! Gecertificeerde eend-expert!';
+                } else if (duckClickCount === 50) {
+                    spawnConfetti(container);
+                    if (bubble) bubble.querySelector('p').textContent = '👑 50 KLIKKEN?! Nu maak ik me zorgen om je.';
+                } else if (duckClickCount === 100) {
+                    spawnConfetti(container);
+                    spawnConfetti(container);
+                    if (bubble) bubble.querySelector('p').textContent = '🦆👑🎊 100!!! Je bent nu officeel een eend. Gefeliciteerd?';
+                }
+            }
+
+            lastClickTime = now;
+
+            // Play quack sound (varying pitch based on click count)
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sawtooth';
+                const basePitch = 600 + Math.random() * 400;
+                osc.frequency.setValueAtTime(basePitch, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(250 + Math.random() * 100, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.2);
+            } catch(err) {}
+        }
+
+        // Confetti!
+        function spawnConfetti(element) {
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+            const rect = element.getBoundingClientRect();
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.cssText = `
+                    position: fixed;
+                    width: 10px;
+                    height: 10px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    left: ${rect.left + rect.width/2}px;
+                    top: ${rect.top + rect.height/2}px;
+                    pointer-events: none;
+                    z-index: 9999;
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                `;
+                document.body.appendChild(confetti);
+                const angle = (Math.PI * 2 * i) / 30;
+                const velocity = 5 + Math.random() * 10;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity - 5;
+                let x = 0, y = 0, gravity = 0.3, opacity = 1;
+                const animate = () => {
+                    x += vx;
+                    y += vy + gravity;
+                    gravity += 0.1;
+                    opacity -= 0.02;
+                    confetti.style.transform = `translate(${x}px, ${y}px) rotate(${x * 3}deg)`;
+                    confetti.style.opacity = opacity;
+                    if (opacity > 0) requestAnimationFrame(animate);
+                    else confetti.remove();
+                };
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function updateSlide() {
+            slides.forEach((s, i) => {
+                s.classList.toggle('active', i === current);
+            });
+
+            // Refresh ideas when on slide 12
+            if (current === 15) {
+                refreshIdeas();
+            }
+        }
+
+        function nextSlide() {
+            if (current < slides.length - 1) {
+                current++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (current > 0) {
+                current--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Click anywhere to go next (but not on idea cards or modal)
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.duck-helper') &&
+                !e.target.closest('.idea-card-demo') &&
+                !e.target.closest('.modal-overlay') &&
+                !e.target.closest('button')) {
+                nextSlide();
+            }
+        });
+
+        // === IDEAS FUNCTIONALITY ===
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            return saved ? JSON.parse(saved) : { ideas: [] };
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getLevelLabel(level) {
+            switch(level) {
+                case 1: return 'broodrooster';
+                case 2: return 'recept';
+                case 3: return 'slimme chef';
+                default: return 'broodrooster';
+            }
+        }
+
+        function refreshIdeas() {
+            const data = loadData();
+            const grid = document.getElementById('ideas-grid');
+            const countEl = document.getElementById('ideas-count');
+
+            // Filter by group
+            let filtered = data.ideas;
+            if (currentGroupFilter === 'none') {
+                filtered = data.ideas.filter(i => !i.group);
+            } else if (currentGroupFilter !== 'all') {
+                filtered = data.ideas.filter(i => i.group === currentGroupFilter);
+            }
+
+            countEl.textContent = filtered.length + (currentGroupFilter !== 'all' ? '/' + data.ideas.length : '');
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--muted); grid-column: 1 / -1;">geen ideeën in deze groep...</div>';
+                return;
+            }
+
+            const sorted = [...filtered].sort((a, b) => {
+                const ratingA = a.rating || 0;
+                const ratingB = b.rating || 0;
+                if (ratingB !== ratingA) return ratingB - ratingA;
+                return b.timestamp - a.timestamp;
+            });
+
+            grid.innerHTML = sorted.map(idea => {
+                const suggestionCount = idea.suggestions ? idea.suggestions.length : 0;
+                const rating = idea.rating || 0;
+                const group = idea.group || '';
+                const stars = [1,2,3,4,5].map(n =>
+                    `<div class="star ${n <= rating ? 'filled' : ''}" data-idea="${idea.id}" data-rating="${n}" onclick="rateIdea(event, '${idea.id}', ${n})" onmouseenter="hoverStar('${idea.id}', ${n})"></div>`
+                ).join('');
+                return `
+                    <div class="idea-card-demo">
+                        <span class="level-tag level-${idea.level}">${getLevelLabel(idea.level)}</span>
+                        <div class="star-rating" onmouseleave="resetStarHover('${idea.id}')">${stars}</div>
+                        <div class="idea-text" onclick="openIdea('${idea.id}')">${escapeHtml(idea.text)}</div>
+                        <div class="meta">
+                            ${suggestionCount > 0 ? `<span class="has-suggestion">${suggestionCount} suggestie${suggestionCount > 1 ? 's' : ''}</span>` : '<span style="color: var(--muted);">klik voor aanpak</span>'}
+                        </div>
+                        <div class="group-selector">
+                            <button class="group-btn ${group === 'groep1' ? 'active' : ''}" onclick="setGroup(event, '${idea.id}', 'groep1')">groep 1</button>
+                            <button class="group-btn ${group === 'groep2' ? 'active' : ''}" onclick="setGroup(event, '${idea.id}', 'groep2')">groep 2</button>
+                            <button class="group-btn later ${group === 'later' ? 'active' : ''}" onclick="setGroup(event, '${idea.id}', 'later')">later</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterGroup(group) {
+            currentGroupFilter = group;
+            document.querySelectorAll('.group-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.group === group);
+            });
+            refreshIdeas();
+        }
+
+        function setGroup(e, ideaId, group) {
+            e.stopPropagation();
+            const data = loadData();
+            const idea = data.ideas.find(i => i.id === ideaId);
+            if (!idea) return;
+
+            // Toggle: if already in this group, remove from group
+            if (idea.group === group) {
+                delete idea.group;
+            } else {
+                idea.group = group;
+            }
+            saveData(data);
+            refreshIdeas();
+        }
+
+        function clearAllIdeas() {
+            if (confirm('Weet je zeker dat je alle ideeën wilt wissen?')) {
+                saveData({ ideas: [] });
+                refreshIdeas();
+            }
+        }
+
+        function setActiveGroup(group) {
+            localStorage.setItem('meierijstad_active_group', group === 'none' ? '' : group);
+            document.querySelectorAll('.active-group-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.active === group);
+            });
+        }
+
+        // Initialize active group from localStorage
+        function initActiveGroup() {
+            const activeGroup = localStorage.getItem('meierijstad_active_group') || '';
+            const groupKey = activeGroup || 'none';
+            document.querySelectorAll('.active-group-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.active === groupKey);
+            });
+        }
+
+        // Call on page load
+        initActiveGroup();
+
+        function openIdea(ideaId) {
+            const data = loadData();
+            const idea = data.ideas.find(i => i.id === ideaId);
+            if (!idea) return;
+
+            currentIdeaId = ideaId;
+
+            const modal = document.getElementById('idea-modal');
+            const levelEl = document.getElementById('modal-level');
+            const ideaEl = document.getElementById('modal-idea');
+            const existingEl = document.getElementById('modal-existing');
+            const listEl = document.getElementById('modal-suggestions-list');
+
+            levelEl.textContent = getLevelLabel(idea.level);
+            levelEl.className = 'modal-level level-' + idea.level;
+            ideaEl.textContent = idea.text;
+
+            // Clear inputs
+            document.getElementById('steps-container').innerHTML = '';
+            document.getElementById('modal-notes').value = '';
+
+            // Start with one empty step
+            addStep();
+
+            // Show existing suggestions
+            if (idea.suggestions && idea.suggestions.length > 0) {
+                existingEl.classList.add('has-items');
+                listEl.innerHTML = idea.suggestions.map(s => {
+                    const stepsHtml = s.steps && s.steps.length > 0
+                        ? `<ul class="steps">${s.steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ul>`
+                        : (s.text ? escapeHtml(s.text) : '');
+                    return `
+                        <div class="suggestion-item">
+                            ${stepsHtml}
+                            ${s.notes ? `<div class="notes">${escapeHtml(s.notes)}</div>` : ''}
+                            ${s.nodes ? `<div class="nodes">nodes: ${escapeHtml(s.nodes)}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                existingEl.classList.remove('has-items');
+            }
+
+            modal.classList.add('active');
+        }
+
+        function addStep() {
+            const container = document.getElementById('steps-container');
+            const stepCount = container.children.length + 1;
+
+            const stepRow = document.createElement('div');
+            stepRow.className = 'step-row';
+            stepRow.innerHTML = `
+                <span class="step-number">${stepCount}</span>
+                <input type="text" placeholder="beschrijf deze stap..." onkeydown="handleStepKeydown(event)">
+                <button type="button" class="remove-step" onclick="removeStep(this)">×</button>
+            `;
+            container.appendChild(stepRow);
+
+            // Focus the new input
+            stepRow.querySelector('input').focus();
+        }
+
+        function removeStep(btn) {
+            const container = document.getElementById('steps-container');
+            if (container.children.length > 1) {
+                btn.closest('.step-row').remove();
+                renumberSteps();
+            }
+        }
+
+        function renumberSteps() {
+            const container = document.getElementById('steps-container');
+            container.querySelectorAll('.step-row').forEach((row, i) => {
+                row.querySelector('.step-number').textContent = i + 1;
+            });
+        }
+
+        function handleStepKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addStep();
+            }
+        }
+
+        function getSteps() {
+            const container = document.getElementById('steps-container');
+            const steps = [];
+            container.querySelectorAll('.step-row input').forEach(input => {
+                const val = input.value.trim();
+                if (val) steps.push(val);
+            });
+            return steps;
+        }
+
+        function closeModal() {
+            document.getElementById('idea-modal').classList.remove('active');
+            currentIdeaId = null;
+        }
+
+        function saveSuggestion() {
+            if (!currentIdeaId) return;
+
+            const steps = getSteps();
+            const notes = document.getElementById('modal-notes').value.trim();
+
+            if (steps.length === 0) {
+                // Focus first step input
+                const firstInput = document.querySelector('#steps-container .step-row input');
+                if (firstInput) firstInput.focus();
+                return;
+            }
+
+            const data = loadData();
+            const idea = data.ideas.find(i => i.id === currentIdeaId);
+            if (!idea) return;
+
+            if (!idea.suggestions) idea.suggestions = [];
+            idea.suggestions.push({
+                steps: steps,
+                notes: notes,
+                timestamp: Date.now()
+            });
+
+            saveData(data);
+            closeModal();
+            refreshIdeas();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function rateIdea(event, ideaId, rating) {
+            event.stopPropagation();
+
+            const data = loadData();
+            const idea = data.ideas.find(i => i.id === ideaId);
+            if (!idea) return;
+
+            idea.rating = rating;
+            saveData(data);
+
+            // Update stars visually without full refresh
+            const stars = document.querySelectorAll(`.star[data-idea="${ideaId}"]`);
+            stars.forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                star.classList.toggle('filled', starRating <= rating);
+            });
+        }
+
+        function hoverStar(ideaId, hoverRating) {
+            const stars = document.querySelectorAll(`.star[data-idea="${ideaId}"]`);
+            stars.forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                star.classList.toggle('filled', starRating <= hoverRating);
+            });
+        }
+
+        function resetStarHover(ideaId) {
+            // Stars will show their actual rating when mouse leaves
+            const data = loadData();
+            const idea = data.ideas.find(i => i.id === ideaId);
+            const rating = idea ? (idea.rating || 0) : 0;
+
+            const stars = document.querySelectorAll(`.star[data-idea="${ideaId}"]`);
+            stars.forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                star.classList.toggle('filled', starRating <= rating);
+            });
+        }
+
+        // Close modal on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Auto-refresh ideas every 5 seconds when on that slide
+        setInterval(() => {
+            if (current === 15) refreshIdeas();
+        }, 5000);
+    </script>
+</body>
+</html>

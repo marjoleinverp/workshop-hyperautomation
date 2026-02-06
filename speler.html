@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Brainstorm - Meierijstad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --text: #1e293b;
+            --muted: #64748b;
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --green: #10b981;
+            --green-light: #ecfdf5;
+            --level1: #10b981;
+            --level2: #3b82f6;
+            --level3: #1d4ed8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .group-indicator {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--green-light);
+            border: 1px solid var(--green);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .group-indicator.active {
+            display: inline-block;
+        }
+
+        /* Level buttons */
+        .level-picker {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .level-btn {
+            flex: 1;
+            padding: 0.75rem 0.5rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        .level-btn .icon {
+            font-size: 1.1rem;
+            font-weight: 800;
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+
+        .level-btn .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: block;
+        }
+
+        .level-btn { border-color: var(--primary); color: var(--primary); }
+        .level-btn.selected { background: var(--primary-light); }
+
+        /* Input area */
+        .input-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-card label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+
+        .idea-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            resize: none;
+            min-height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .idea-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .idea-input::placeholder {
+            color: var(--muted);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #059669;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Success message */
+        .success-msg {
+            display: none;
+            background: var(--green-light);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Ideas list */
+        .ideas-section h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ideas-section h2 .count {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+
+        .idea-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .idea-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .idea-card .level-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .idea-card .level-tag {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .idea-card p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+
+        .idea-card .time {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+        }
+
+        /* Star rating input */
+        .star-rating-input {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .star-rating-input .star {
+            width: 32px;
+            height: 32px;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.15s;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .star-rating-input .star:hover,
+        .star-rating-input .star.preview {
+            background: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        .star-rating-input .star.selected {
+            background: #f59e0b;
+        }
+
+        /* Star rating on idea cards */
+        .idea-stars {
+            display: flex;
+            gap: 0.15rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .idea-stars .star {
+            width: 22px;
+            height: 22px;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.15s;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .idea-stars .star.filled {
+            background: #f59e0b;
+        }
+
+        .idea-stars .star:hover,
+        .idea-stars .star.preview {
+            background: #fbbf24;
+            transform: scale(1.15);
+        }
+
+        .idea-stars .rating-count {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-left: 0.5rem;
+            align-self: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>wat wil jij automatiseren?</h1>
+            <p>deel je idee voor Meierijstad</p>
+            <div id="group-indicator" class="group-indicator"></div>
+        </div>
+
+        <div class="success-msg" id="success-msg">
+            je idee is toegevoegd!
+        </div>
+
+        <div class="input-card">
+            <label>welk niveau past bij jouw idee?</label>
+            <div class="level-picker">
+                <button class="level-btn level-1" onclick="selectLevel(1)" data-level="1">
+                    <span class="icon">1</span>
+                    <span class="label">broodrooster</span>
+                </button>
+                <button class="level-btn level-2" onclick="selectLevel(2)" data-level="2">
+                    <span class="icon">2</span>
+                    <span class="label">recept</span>
+                </button>
+                <button class="level-btn level-3" onclick="selectLevel(3)" data-level="3">
+                    <span class="icon">3</span>
+                    <span class="label">slimme chef</span>
+                </button>
+            </div>
+
+            <label>beschrijf je idee</label>
+            <textarea
+                class="idea-input"
+                id="idea-input"
+                placeholder="bijv. automatisch een Teams-bericht sturen als een vergunningsaanvraag binnenkomt..."
+            ></textarea>
+
+            <label>hoe belangrijk vind je dit idee?</label>
+            <div class="star-rating-input" id="star-rating">
+                <div class="star" data-value="1" onclick="selectRating(1)" onmouseenter="previewRating(1)" onmouseleave="clearPreview()"></div>
+                <div class="star" data-value="2" onclick="selectRating(2)" onmouseenter="previewRating(2)" onmouseleave="clearPreview()"></div>
+                <div class="star" data-value="3" onclick="selectRating(3)" onmouseenter="previewRating(3)" onmouseleave="clearPreview()"></div>
+                <div class="star" data-value="4" onclick="selectRating(4)" onmouseenter="previewRating(4)" onmouseleave="clearPreview()"></div>
+                <div class="star" data-value="5" onclick="selectRating(5)" onmouseenter="previewRating(5)" onmouseleave="clearPreview()"></div>
+            </div>
+
+            <button class="submit-btn" id="submit-btn" onclick="submitIdea()">
+                verstuur idee
+            </button>
+        </div>
+
+        <div class="ideas-section">
+            <h2>ingediende ideeën <span class="count" id="idea-count">0</span></h2>
+            <div id="ideas-container">
+                <div class="empty-state">
+                    <p>nog geen ideeën ingediend</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'meierijstad_brainstorm';
+        let selectedLevel = null;
+        let selectedRating = 0;
+
+        function selectRating(value) {
+            selectedRating = value;
+            updateStars();
+        }
+
+        function previewRating(value) {
+            document.querySelectorAll('.star-rating-input .star').forEach((star, index) => {
+                star.classList.toggle('preview', index < value);
+            });
+        }
+
+        function clearPreview() {
+            document.querySelectorAll('.star-rating-input .star').forEach(star => {
+                star.classList.remove('preview');
+            });
+        }
+
+        function updateStars() {
+            document.querySelectorAll('.star-rating-input .star').forEach((star, index) => {
+                star.classList.toggle('selected', index < selectedRating);
+            });
+        }
+
+        function selectLevel(level) {
+            selectedLevel = level;
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (parseInt(btn.dataset.level) === level) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function submitIdea() {
+            const input = document.getElementById('idea-input');
+            const text = input.value.trim();
+
+            if (!text) {
+                input.focus();
+                return;
+            }
+
+            // Load existing ideas
+            let data = loadData();
+
+            // Get active group from demo page setting
+            const activeGroup = localStorage.getItem('meierijstad_active_group') || '';
+
+            // Add new idea
+            const newIdea = {
+                id: 'idea_' + Date.now(),
+                level: selectedLevel || 1,
+                text: text,
+                rating: selectedRating || 3,
+                votes: 0,
+                timestamp: Date.now()
+            };
+
+            // Assign to active group if set
+            if (activeGroup) {
+                newIdea.group = activeGroup;
+            }
+
+            data.ideas.push(newIdea);
+
+            // Save
+            saveData(data);
+
+            // Clear input
+            input.value = '';
+            selectedLevel = null;
+            selectedRating = 0;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('selected'));
+            updateStars();
+
+            // Show success
+            const successMsg = document.getElementById('success-msg');
+            successMsg.classList.add('show');
+            setTimeout(() => successMsg.classList.remove('show'), 3000);
+
+            // Refresh list
+            renderIdeas();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return { ideas: [] };
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getLevelLabel(level) {
+            switch(level) {
+                case 1: return 'broodrooster';
+                case 2: return 'recept';
+                case 3: return 'slimme chef';
+                default: return 'broodrooster';
+            }
+        }
+
+        function renderIdeas() {
+            const data = loadData();
+            const container = document.getElementById('ideas-container');
+            const countEl = document.getElementById('idea-count');
+
+            countEl.textContent = data.ideas.length;
+
+            if (data.ideas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>nog geen ideeën ingediend</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by rating first, then by newest
+            const sorted = [...data.ideas].sort((a, b) => {
+                const ratingA = a.rating || 0;
+                const ratingB = b.rating || 0;
+                if (ratingB !== ratingA) return ratingB - ratingA;
+                return b.timestamp - a.timestamp;
+            });
+
+            container.innerHTML = sorted.map(idea => {
+                const rating = idea.rating || 0;
+                const ratingCount = idea.ratingCount || 0;
+                const stars = [1,2,3,4,5].map(n =>
+                    `<div class="star ${n <= rating ? 'filled' : ''}"
+                         data-idea="${idea.id}"
+                         data-rating="${n}"
+                         onclick="rateIdea('${idea.id}', ${n})"
+                         onmouseenter="previewIdeaRating('${idea.id}', ${n})"
+                         onmouseleave="clearIdeaPreview('${idea.id}')"></div>`
+                ).join('');
+                return `
+                    <div class="idea-card">
+                        <span class="level-tag level-${idea.level}">${getLevelLabel(idea.level)}</span>
+                        <div class="idea-stars" data-idea-stars="${idea.id}">
+                            ${stars}
+                            ${ratingCount > 0 ? `<span class="rating-count">(${ratingCount}x)</span>` : ''}
+                        </div>
+                        <p>${escapeHtml(idea.text)}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function rateIdea(ideaId, rating) {
+            const data = loadData();
+            const idea = data.ideas.find(i => i.id === ideaId);
+            if (!idea) return;
+
+            // Calculate new average rating
+            const oldRating = idea.rating || 0;
+            const oldCount = idea.ratingCount || 0;
+            const newCount = oldCount + 1;
+            const newRating = Math.round(((oldRating * oldCount) + rating) / newCount);
+
+            idea.rating = newRating;
+            idea.ratingCount = newCount;
+
+            saveData(data);
+            renderIdeas();
+        }
+
+        function previewIdeaRating(ideaId, rating) {
+            const container = document.querySelector(`[data-idea-stars="${ideaId}"]`);
+            if (!container) return;
+            container.querySelectorAll('.star').forEach((star, index) => {
+                star.classList.toggle('preview', index < rating);
+            });
+        }
+
+        function clearIdeaPreview(ideaId) {
+            const container = document.querySelector(`[data-idea-stars="${ideaId}"]`);
+            if (!container) return;
+            container.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('preview');
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Show active group indicator
+        function updateGroupIndicator() {
+            const activeGroup = localStorage.getItem('meierijstad_active_group') || '';
+            const indicator = document.getElementById('group-indicator');
+
+            if (activeGroup) {
+                const groupLabels = {
+                    'groep1': 'groep 1',
+                    'groep2': 'groep 2'
+                };
+                indicator.textContent = 'je idee komt in: ' + (groupLabels[activeGroup] || activeGroup);
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+        }
+
+        // Initial render
+        renderIdeas();
+        updateGroupIndicator();
+
+        // Auto-refresh every 3 seconds to see new ideas from others
+        setInterval(() => {
+            renderIdeas();
+            updateGroupIndicator();
+        }, 3000);
+    </script>
+</body>
+</html>
